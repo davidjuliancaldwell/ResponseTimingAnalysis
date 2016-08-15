@@ -16,7 +16,12 @@ addpath('./scripts')
 % data directory
 
 %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+
+% DJC Desktop
+%DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+
+% DJC Laptop
+DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
 
 SIDS = {'acabb1'};
 
@@ -298,56 +303,139 @@ plot(t_stimFile,stim1,'r');
 %findpeaks(buttonData,t_button,'MinpeakDistance',2,'Minpeakheight',10e-3)
 %% QUANTIFY RXN TIME TO CORTICAL STIM
 % get epochs for button press, with start being onset of stimulation marker
+if s == 1
+    %
+    trainTimes = find(stimFromFile~=0);
+    
+    % shrink condition type to be 120
+    condType = condType(1:120);
+    
+    % pick condition type where stimulation was delivered
+    if s == 1
+        trainTimesCond1 = trainTimes(condType==0);
+    elseif s == 2
+        trainTimesCond1 = trainTimes(condType==0 | condType==1);
+    end
+    
+    sampsEnd = round(2*fs_stim);
+    
+    % epoched button press
+    epochedButton = squeeze(getEpochSignal(buttonDataClip,trainTimesCond1,(trainTimesCond1 + sampsEnd)));
+    
+    figure
+    t_epoch = [0:size(epochedButton,1)-1]/fs_stim;
+    plot(t_epoch,epochedButton);
+    
+    % vector of pks of button press
+    
+    buttonPksVec = zeros(size(epochedButton,2),1);
+    buttonLocsVec = zeros(size(epochedButton,2),1);
+    
+    for i = 1:size(epochedButton,2)
+        [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+        if isempty(buttonPksTemp)
+            buttonPksTemp = NaN;
+            buttonLocsTemp = NaN;
+        end
+        buttonPksVec(i) = buttonPksTemp;
+        buttonLocsVec(i) = buttonLocsTemp;
+    end
+    
+    % histogram of rxn times, assume 200 ms or greater  & less than 1 s
+    figure
+    histogram(buttonLocsVec(buttonLocsVec>0.2 & buttonLocsVec<1 ))
+    title('Histogram of reaction times')
+    xlabel('Time (seconds')
+    ylabel('Count')
+end
+%% RXN TIME FOR TACTOR STIM
+% get epochs for button press, with start being onset of stimulation marker
 
 %
-trainTimes = find(stimFromFile~=0);
-
-% shrink condition type to be 120
-condType = condType(1:120);
-
-% pick condition type where stimulation was delivered
-if s == 1
-    trainTimesCond1 = trainTimes(condType==0);
-elseif s == 2
-    trainTimesCond1 = trainTimes(condType==0 | condType==1);
-end
-
-sampsEnd = round(2*fs_stim);
-
-% epoched button press 
-epochedButton = squeeze(getEpochSignal(buttonDataClip,trainTimesCond1,(trainTimesCond1 + sampsEnd)));
-
-% if tactor stim, epoch that too - FINISH THIS 
-epochedTactor
-
-figure
-t_epoch = [0:size(epochedButton,1)-1]/fs_stim;
-plot(t_epoch,epochedButton);
-
-% vector of pks of button press
-
-buttonPksVec = zeros(size(epochedButton,2),1);
-buttonLocsVec = zeros(size(epochedButton,2),1);
-
-for i = 1:size(epochedButton,2)
-    [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
-    if isempty(buttonPksTemp)
-        buttonPksTemp = NaN;
-        buttonLocsTemp = NaN;
+if s == 2
+    trainTimes = find(stimFromFile~=0);
+    
+    % shrink condition type to be 120
+    condType = condType(1:120);
+    
+    % pick condition type where stimulation was delivered
+    if s == 1
+        trainTimesCond1 = trainTimes(condType==0);
+    elseif s == 2
+        trainTimesCond1 = trainTimes(condType==0 | condType==1);
     end
-    buttonPksVec(i) = buttonPksTemp;
-    buttonLocsVec(i) = buttonLocsTemp;
+    
+    % different sample end for tactor and button to account for double
+    % delay
+    
+    sampsEndButton = round(3*fs_stim);
+    sampsEndTactor = round(2*fs_stim);
+    
+    % epoched button press
+    epochedButton = squeeze(getEpochSignal(buttonDataClip,trainTimesCond1,(trainTimesCond1 + sampsEndButton)));
+    
+    % if tactor stim, epoch that too - FINISH THIS
+    epochedTactor = squeeze(getEpochSignal(tactorData,trainTimesCond1,(trainTimesCond1 + sampsEndTactor)));
+    
+    figure
+    t_epoch_button = [0:size(epochedButton,1)-1]/fs_stim;
+    t_epoch_tact = [0:size(epochedTactor,1)-1]/fs_stim;
+    
+    plot(t_epoch_button,epochedButton);
+    
+    % vector of pks of button press
+    
+    buttonPksVec = zeros(size(epochedButton,2),1);
+    buttonLocsVec = zeros(size(epochedButton,2),1);
+    
+    % vector of pks of tactor press
+    
+    tactorPksVec = zeros(size(epochedTactor,2),1);
+    tactorLocsVec = zeros(size(epochedTactor,2),1);
+    
+    for i = 1:size(epochedButton,2)
+        [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch_button,'NPeaks',1,'Minpeakheight',0.008);
+        [tactorPksTemp,tactorLocsTemp] = findpeaks(epochedTactor(:,i),t_epoch_tact,'NPeaks',1,'Minpeakheight',2);
+        
+        if isempty(buttonPksTemp)
+            buttonPksTemp = NaN;
+            buttonLocsTemp = NaN;
+        end
+        
+        if isempty(tactorPksTemp)
+            tactorPksTemp = NaN;
+            tactorLocsTemp = NaN;
+        end
+        
+        buttonPksVec(i) = buttonPksTemp;
+        buttonLocsVec(i) = buttonLocsTemp;
+        tactorPksVec(i) = tactorPksTemp;
+        tactorLocsVec(i) = tactorLocsTemp;
+    end
+    %%
+    % calculate differences
+    
+    buttonTactDiff = buttonLocsVec - tactorLocsVec;
+    
+    % histogram of rxn times for tacxtor , assume 200 ms or greater, and
+    % less than 1 s
+    figure
+    histogram(tactorLocsVec(tactorLocsVec>0.2 & tactorLocsVec<1))
+    title('Histogram of reaction times for tactor')
+    xlabel('Time (seconds')
+    ylabel('Count')
+    
+    % histogram of rxn times for button press - tactor at each
+    % corresponding epoch
+        figure
+    histogram(buttonTactDiff(buttonTactDiff>0.2 & buttonTactDiff<1))
+    title('Histogram of reaction times for button relative to tactor onset')
+    xlabel('Time (seconds')
+    ylabel('Count')
+    
+    
+    
 end
-
-% histogram of rxn times, assume 200 ms or greater
-figure
-histogram(buttonLocsVec(buttonLocsVec>0.2))
-title('Histogram of reaction times')
-xlabel('Time (seconds')
-ylabel('Count')
-
-%% RXN TIME FOR TACTOR STIM
-
 
 %%
 % logical button mask
