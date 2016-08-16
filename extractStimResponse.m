@@ -1,29 +1,29 @@
 %% starting with subject a
 
-%% initialize output and meta dir
-% clear workspace
-close all; clear all; clc
-
-% set input output working directories - for David's PC right now
-% Z_ConstantsStimResponse;
-
-% add path for scripts to work with data tanks
-addpath('./scripts')
-
-% subject directory, change as needed
-% SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-
-% data directory
-
-%PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-
-% DJC Desktop
-%DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
-
-% DJC Laptop
-DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
-
-SIDS = {'acabb1'};
+%% initialize output and meta dir - THIS IS ALL IN THE MAJRO 
+% % clear workspace
+% close all; clear all; clc
+% 
+% % set input output working directories - for David's PC right now
+% % Z_ConstantsStimResponse;
+% 
+% % add path for scripts to work with data tanks
+% addpath('./scripts')
+% 
+% % subject directory, change as needed
+% % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
+% 
+% % data directory
+% 
+% %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
+% 
+% % DJC Desktop
+% DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+% 
+% % DJC Laptop
+% %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
+% 
+% SIDS = {'acabb1'};
 
 %% load in subject
 
@@ -46,7 +46,6 @@ if (strcmp(sid, 'acabb1'))
         load(fullfile(folder_data,'ReactionTime-1.mat'))
     elseif s == 2
         load(fullfile(folder_data,'ReactionTime-3.mat'))
-        
     elseif s == 3
         load(fullfile(folder_data,'ReactionTime-4.mat'))
         
@@ -196,9 +195,7 @@ plot(t_tact,tactorData);
 
 title('tactor data')
 
-
-
-%% look at button press
+% look at button press
 
 buttonData = tact(:,2);
 t_button = (0:length(buttonData)-1)/fs_tact;
@@ -207,8 +204,7 @@ plot(t_button,buttonData);
 
 title('button data')
 
-
-%% look at stim from file saved
+% look at stim from file saved
 
 stimFromFile = tact(:,3);
 t_stimFile = (0:length(stim)-1)/fs_tact;
@@ -216,7 +212,7 @@ figure
 plot(t_stimFile,stimFromFile);
 title('stim from file')
 
-%% look at all 3 + stim waveform
+% look at all 3 + stim waveform
 
 figure
 ax1 = subplot(4,1,1);
@@ -239,7 +235,7 @@ plot(t_stimFile,stim1);
 %link axis
 linkaxes([ax1,ax2,ax3,ax4],'x')
 
-%% for 1st subject - only look at parts where t> 50 for sensory stim, t > 12 for tactor  (t_begin)
+%% for 1st subject - only look at parts where t > 50 for sensory stim, t > 12 for tactor  (t_begin)
 
 if s==1
     t_begin = 40;
@@ -254,6 +250,12 @@ stim1 = stim1(t_stimFile>t_begin);
 t_button = t_button(t_button>t_begin);
 t_tact = t_tact(t_tact>t_begin);
 t_stimFile = t_stimFile(t_stimFile>t_begin);
+
+% set respLo and respHi, which are the values which for less or greater
+% than rxn times aren't analyzed
+
+respLo = 0.150;
+respHi = 1;
 
 %% look at valu
 % figure
@@ -328,25 +330,31 @@ if s == 1
     
     % vector of pks of button press
     
-    buttonPksVec = zeros(size(epochedButton,2),1);
-    buttonLocsVec = zeros(size(epochedButton,2),1);
+    buttonPksVecCort = zeros(size(epochedButton,2),1);
+    buttonLocsVecCort = zeros(size(epochedButton,2),1);
     
+    clear buttonPksTemp buttonLocsTemp tactorPksTemp tactorLocsTemp;
+
     for i = 1:size(epochedButton,2)
         [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
         if isempty(buttonPksTemp)
             buttonPksTemp = NaN;
             buttonLocsTemp = NaN;
         end
-        buttonPksVec(i) = buttonPksTemp;
-        buttonLocsVec(i) = buttonLocsTemp;
+        buttonPksVecCort(i) = buttonPksTemp;
+        buttonLocsVecCort(i) = buttonLocsTemp;
     end
     
     % histogram of rxn times, assume 200 ms or greater  & less than 1 s
     figure
-    histogram(buttonLocsVec(buttonLocsVec>0.2 & buttonLocsVec<1 ))
+    % set number of bins
+    nbins = 15;
+    histogram(buttonLocsVecCort(buttonLocsVecCort>respLo & buttonLocsVecCort<respHi ),nbins)
     title('Histogram of reaction times')
     xlabel('Time (seconds')
     ylabel('Count')
+    
+ 
 end
 %% RXN TIME FOR TACTOR STIM
 % get epochs for button press, with start being onset of stimulation marker
@@ -385,13 +393,16 @@ if s == 2
     
     % vector of pks of button press
     
-    buttonPksVec = zeros(size(epochedButton,2),1);
-    buttonLocsVec = zeros(size(epochedButton,2),1);
+    buttonPksVecTact = zeros(size(epochedButton,2),1);
+    buttonLocsVecTact = zeros(size(epochedButton,2),1);
     
     % vector of pks of tactor press
     
-    tactorPksVec = zeros(size(epochedTactor,2),1);
-    tactorLocsVec = zeros(size(epochedTactor,2),1);
+    tactorPksVecTact = zeros(size(epochedTactor,2),1);
+    tactorLocsVecTact = zeros(size(epochedTactor,2),1);
+    
+    clear buttonPksTemp buttonLocsTemp tactorPksTemp tactorLocsTemp;
+
     
     for i = 1:size(epochedButton,2)
         [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch_button,'NPeaks',1,'Minpeakheight',0.008);
@@ -407,20 +418,22 @@ if s == 2
             tactorLocsTemp = NaN;
         end
         
-        buttonPksVec(i) = buttonPksTemp;
-        buttonLocsVec(i) = buttonLocsTemp;
-        tactorPksVec(i) = tactorPksTemp;
-        tactorLocsVec(i) = tactorLocsTemp;
+        buttonPksVecTact(i) = buttonPksTemp;
+        buttonLocsVecTact(i) = buttonLocsTemp;
+        tactorPksVecTact(i) = tactorPksTemp;
+        tactorLocsVecTact(i) = tactorLocsTemp;
     end
     %%
     % calculate differences
     
-    buttonTactDiff = buttonLocsVec - tactorLocsVec;
+    buttonTactDiff = buttonLocsVecTact - tactorLocsVecTact;
     
     % histogram of rxn times for tacxtor , assume 200 ms or greater, and
     % less than 1 s
     figure
-    histogram(tactorLocsVec(tactorLocsVec>0.2 & tactorLocsVec<1))
+    %set number of bins for histogram 
+    nbins = 15;
+    histogram(tactorLocsVecTact(tactorLocsVecTact>respLo & tactorLocsVecTact<respHi),nbins);
     title('Histogram of reaction times for tactor')
     xlabel('Time (seconds')
     ylabel('Count')
@@ -428,29 +441,20 @@ if s == 2
     % histogram of rxn times for button press - tactor at each
     % corresponding epoch
         figure
-    histogram(buttonTactDiff(buttonTactDiff>0.2 & buttonTactDiff<1))
+    histogram(buttonTactDiff(buttonTactDiff>respLo & buttonTactDiff<respHi),nbins)
     title('Histogram of reaction times for button relative to tactor onset')
     xlabel('Time (seconds')
     ylabel('Count')
     
+    % save train delivery times for brain data 
     
     
 end
 
-%%
-% logical button mask
-buttonMask = buttonData > 0.009;
+% clear all variables except the ones that are useful for further
+% iterations 
 
-
-
-% make masked tactor
-tactorMask = tactorData > 1;
-
-
-% find stim onsets from stimFromeFile
-stimTrainStarts = find(stimFromFile==1);
-
-
+clearvars -except buttonTactDiff tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR 
 
 
 
