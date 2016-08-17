@@ -37,6 +37,6 @@ extractStimResponse
 
 compareRespTimes
 
-%%
+%% extract the neural data 
 
-n
+extractNeuralData

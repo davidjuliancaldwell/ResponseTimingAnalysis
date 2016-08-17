@@ -16,7 +16,7 @@ zCort = zscore(buttonLocsVecCortTrim);
 
 tactor = 1e3.*tactorLocsVecTactTrim(abs(zTact)<3);
 difference = 1e3.*buttonTactDiffTrim(abs(zDiff)<3);
-cort = 1e3.*buttonLocsVecCortTrim(abs(zDiff)<3);
+cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
 
 %% BOX PLOT
 

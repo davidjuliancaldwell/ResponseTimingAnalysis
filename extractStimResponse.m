@@ -454,7 +454,7 @@ end
 % clear all variables except the ones that are useful for further
 % iterations 
 
-clearvars -except buttonTactDiff tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR 
+clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR 
 
 
 
