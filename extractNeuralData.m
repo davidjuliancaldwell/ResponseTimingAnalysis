@@ -33,6 +33,11 @@ end
 raw_eco = Wave.data;
 eco_fs = Wave.info.SamplingRateHz;
 
+% load in response time comparison for calculating which time periods to
+% use - should be in current working directory 
+
+load([sid '_compareResponse.mat'])
+
 
 %% get train times
 
@@ -89,14 +94,19 @@ if s == 1
     %where to end plotting
     sampsEnd = round(2*eco_fs);
     
+    %presamps - where to begin looking for "rest" period (100 ms before?)
+    presamps = round(0.1*eco_fs);
+    
     % only pick train times which met certain threshold
     trainTimesScreen = trainTimesCond1(buttonLocsVecCort>respLo & buttonLocsVecCort<respHi);
     trainTimesScreen = trainTimesScreen(abs(zCort)< 3 );
     
     
-    % epoched button press
+    % epoched button press, before stim to after 
     epochedCortEco = squeeze(getEpochSignal(Wave.data,(trainTimesScreen + artifact_end),(trainTimesScreen + sampsEnd)));
     
+    % get pre stim period for comparison 
+    epochedPreStim = squeeze(getEpochSignal(Wave.data,(trainTimesScreen - presamps), trainTimesScreen);
     
     figure
     for chan = 1:size(epochedCortEco,2)
@@ -118,7 +128,11 @@ if s == 1
     
     trialHG = zeros(size(epochedCortEco,1),size(epochedCortEco,2),size(epochedCortEco,3));
     trialBeta = zeros(size(epochedCortEco,1),size(epochedCortEco,2),size(epochedCortEco,3));
+    
+    
 
+    % for each trial, run the functions below - only want to filter pre and
+    % post 
     for i = 1:size(epochedCortEco,3)
    % notch filter to eliminate line noise
     sig = squeeze(epochedCortEco(:,:,i));
@@ -140,7 +154,7 @@ if s == 1
     [sorted,indexes] = sort(cort);
     
     trialHGsort = trialHG(:,:,indexes);
-        trialBetasort = trialBeta(:,:,indexes);
+    trialBetasort = trialBeta(:,:,indexes);
 
     
     % plot example channel

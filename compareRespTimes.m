@@ -18,6 +18,11 @@ tactor = 1e3.*tactorLocsVecTactTrim(abs(zTact)<3);
 difference = 1e3.*buttonTactDiffTrim(abs(zDiff)<3);
 cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
 
+current_direc = pwd;
+
+save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort');
+
+
 %% BOX PLOT
 
 combinedInfo = cat(1,cort,difference,tactor);
