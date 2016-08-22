@@ -16,7 +16,9 @@ fileNum = answer{4};
 
 %% make the timing file
 % add 1 to ITI - changed from 0.8 which we originally thought. This is to
-% account for 200 ms of pulse, then the 800 ms of downtime, then the ITI 
+% account for 200 ms of pulse, then the 800 ms of downtime, then the ITI
+
+% so the range of the ITI is actually 2.5-3.5 s
 
 ITIlo = ITI(1)+1;
 ITIhi = ITI(2)+1;
@@ -88,6 +90,15 @@ vectorTactRand2 = vectorTact(randperm(length(vectorTact)));
 
 ptsTotal = [pts1; pts2];
 vectorCondRandTotal = [vectorCondRand1; vectorTactRand1 ;vectorCondRand2 ;vectorTactRand2];
+
+%% account for latency in beeps for tactor touch of experimenter
+% assuming 200 ms hi, 300 ms lo for each beep, and a train of 3 beeps where
+% the experimenter is delivering a touch on the 3rd beep, subtract 1000 ms
+% from each response time pt where the condition is for tactor touch 
+
+timeToDelay = 1; % 1000 ms = 1 s
+logicalValues = (vectorCondRandTotal == -1);
+ptsTotal(logicalValues) = (ptsTotal(logicalValues)-(floor(fs*timeToDelay)));
 
 
 %% write these times to file for stim train delivery
