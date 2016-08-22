@@ -23,7 +23,7 @@ ITIhi = ITI(2)+1;
 
 % number of trials
 
-numTrials = 120;
+numTrials = 140;
 randTimes = unifrnd(ITIlo,ITIhi,numTrials,1);
 
 
