@@ -3,35 +3,31 @@
 % number at which each stimulus train will be delivered. the second has the
 % condition which should be read in 
 
-% sid = input('what is the subject id?\n','s');
-% 
-% % default 
-% ITI = input('What is the range of ITI to use? (in seconds, input as [1.5,2.5]) ?\n');
-% 
-% % default 24414 
-% fs = input('What is the sample rate/clock rate of the TDT system in Hz? - default is 24414 \n');
-
-prompt = {'Enter subject name','What is the range of ITI?', 'What is the sample rate of the TDT?'};
+prompt = {'Enter subject name','What is the range of ITI?', 'What is the sample rate of the TDT?','Number Of Trials Per Voltage?','How many stimulation Conditions?','Which file number is this?'};
 dlg_title = 'Input';
 num_lines = 1;
-defaultans = {'DBS','[2.25,2.75]','24414'};
+defaultans = {'DBS','[2.25,2.75]','24414','30','6','1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 sid = answer{1};
 ITI = str2num(answer{2});
 fs = str2num(answer{3});
+numTrials = str2num(answer{4});
+stimConds = str2num(answer{5});
+fileNum = answer{6};
 
 
-%% make the timing file
-% add 1 to ITI - changed from 0.8 which we originally thought. This is to
-% account for 200 ms of pulse, then the 800 ms of downtime, then the ITI 
+%% make the timing file 
 
-ITIlo = ITI(1)+1;
-ITIhi = ITI(2)+1;
+% add 500 ms to the ITI times to account for the 500 ms pulse trains - then
+% 2500 off 
 
-% number of trials
+ITIlo = ITI(1)+0.5;
+ITIhi = ITI(2)+0.5;
 
-numTrials = 120;
-randTimes = unifrnd(ITIlo,ITIhi,numTrials,1);
+% number of trials for each voltage - 30. 
+% so 30 * 6 ?
+
+randTimes = unifrnd(ITIlo,ITIhi,6*numTrials,1);
 
 
 % here the vector is converted to the sample number where the stimulus
@@ -47,42 +43,25 @@ end
 
 %% make the conditions file
 
-% tactor 
-tact = repmat(-1,20,1);
+stimRand = [];
 
-% no stim
-noStim = repmat(0,10,1);
-
-% stim conditions
-
-%numbers of stimuli to delivery 
-numEachStim = 20;
-
-offTarg = repmat(,numEachStim,1);
-stim1 = repmat(100,numEachStim,1);
-stim2 = repmat(200,numEachStim,1);
-stim3 = repmat(400,numEachStim,1);
-stim4 = repmat(800,numEachStim,1);
-
-
-vectorCond = [stim1;stim2;stim3;stim4;noStim];
-vectorTact = [tact;noStim];
-
-vectorCondRand = vectorCond(randperm(length(vectorCond)));
-vectorTactRand = vectorTact(randperm(length(vectorTact)));
-
+for i = 1:numTrials
+   
+    stimRand = [stimRand randperm(stimConds)];
+    
+end
 
 
 %% write these times to file for stim train delivery
 
-filename = sprintf('%s_stimTrainDelivery_1.txt',sid);
+filename = sprintf('%s_stimTrainDelivery_%s.txt',sid,fileNum);
 fileID = fopen(filename,'w+');
 fprintf(fileID,'%d\r\n',pts);
 fclose(fileID);
 
 %% write these times to file for condition 
 
-filename = sprintf('%s_condition_1.txt',sid);
+filename = sprintf('%s_condition_%s.txt',sid,fileNum);
 fileID = fopen(filename,'w+');
-fprintf(fileID,'%d\r\n',vectorCondRand);
+fprintf(fileID,'%d\r\n',stimRand);
 fclose(fileID);

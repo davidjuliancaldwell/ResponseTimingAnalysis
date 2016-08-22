@@ -3,14 +3,15 @@
 % number at which each stimulus train will be delivered. the second has the
 % condition which should be read in 
 
-prompt = {'Enter subject name','What is the range of ITI?', 'What is the sample rate of the TDT?'};
+prompt = {'Enter subject name','What is the range of ITI?', 'What is the sample rate of the TDT?','Which file number is this?'};
 dlg_title = 'Input';
 num_lines = 1;
-defaultans = {'rxnTime','[1.5,2.5]','24414'};
+defaultans = {'rxnTime','[1.5,2.5]','24414','1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 sid = answer{1};
 ITI = str2num(answer{2});
 fs = str2num(answer{3});
+fileNum = answer{4};
 
 
 %% make the timing file
@@ -39,17 +40,7 @@ pts1 = pts;
 clear pts
 
 %% do timing again
-
-
-
-ITIlo = ITI(1)+1;
-ITIhi = ITI(2)+1;
-
-% number of trials
-
-numTrials = 120;
 randTimes = unifrnd(ITIlo,ITIhi,numTrials,1);
-
 
 % here the vector is converted to the sample number where the stimulus
 % train should start to be delivered 
@@ -61,8 +52,6 @@ for i = 1:length(randTimes)
 end
 
 pts2 = pts;
-
-
 
 %% make the conditions file
 
@@ -90,31 +79,7 @@ vectorTact = [tact;noStim];
 vectorCondRand1 = vectorCond(randperm(length(vectorCond)));
 vectorTactRand1 = vectorTact(randperm(length(vectorTact)));
 
-clear vectorCond vectorTact
-
-
-
 %% do that again, and stack them
-
-% tactor 
-tact = repmat(-1,20,1);
-
-% no stim
-noStim = repmat(0,10,1);
-
-% stim conditions
-
-%numbers of stimuli to delivery 
-numEachStim = 20;
-
-offTarg = repmat(1,numEachStim,1);
-stim1 = repmat(100,numEachStim,1);
-stim2 = repmat(200,numEachStim,1);
-stim3 = repmat(400,numEachStim,1);
-stim4 = repmat(800,numEachStim,1);
-
-vectorCond = [stim1;stim2;stim3;stim4;noStim;offTarg];
-vectorTact = [tact;noStim];
 
 vectorCondRand2 = vectorCond(randperm(length(vectorCond)));
 vectorTactRand2 = vectorTact(randperm(length(vectorTact)));
@@ -127,14 +92,14 @@ vectorCondRandTotal = [vectorCondRand1; vectorTactRand1 ;vectorCondRand2 ;vector
 
 %% write these times to file for stim train delivery
 
-filename = sprintf('%s_stimTrainDelivery_1.txt',sid);
+filename = sprintf('%s_stimTrainDelivery_%s.txt',sid,fileNum);
 fileID = fopen(filename,'w+');
 fprintf(fileID,'%d\r\n',pts);
 fclose(fileID);
 
 %% write these times to file for condition 
 
-filename = sprintf('%s_condition_1.txt',sid);
+filename = sprintf('%s_condition_%s.txt',sid,fileNum);
 fileID = fopen(filename,'w+');
 fprintf(fileID,'%d\r\n',vectorCondRandTotal);
 fclose(fileID);
