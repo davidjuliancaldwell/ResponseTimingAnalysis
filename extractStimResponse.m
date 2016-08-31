@@ -1,11 +1,11 @@
 %% starting with subject a
 
 %% initialize output and meta dir - THIS IS ALL IN THE MAJRO 
-% % clear workspace
+% % % clear workspace
 % close all; clear all; clc
 % 
 % % set input output working directories - for David's PC right now
-% % Z_ConstantsStimResponse;
+% Z_ConstantsStimResponse;
 % 
 % % add path for scripts to work with data tanks
 % addpath('./scripts')
@@ -454,7 +454,7 @@ end
 % clear all variables except the ones that are useful for further
 % iterations 
 
-clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR 
+clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR sid
 
 
 

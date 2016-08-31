@@ -6,7 +6,7 @@
 prompt = {'Enter subject name','What is the range of ITI?', 'What is the sample rate of the TDT?','Number Of Trials Per Voltage?','How many stimulation Conditions?','Which file number is this?'};
 dlg_title = 'Input';
 num_lines = 1;
-defaultans = {'DBS','[2.25,2.75]','24414','30','6','1'};
+defaultans = {'DBS','[2.25,2.75]','48828.125','15','4','1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 sid = answer{1};
 ITI = str2num(answer{2});
@@ -27,7 +27,7 @@ ITIhi = ITI(2)+0.5;
 % number of trials for each voltage - 30. 
 % so 30 * 6 ?
 
-randTimes = unifrnd(ITIlo,ITIhi,6*numTrials,1);
+randTimes = unifrnd(ITIlo,ITIhi,stimConds*numTrials,1);
 
 
 % here the vector is converted to the sample number where the stimulus

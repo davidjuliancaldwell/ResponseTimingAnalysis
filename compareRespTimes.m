@@ -20,7 +20,7 @@ cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort');
+save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
 
 
 %% BOX PLOT
