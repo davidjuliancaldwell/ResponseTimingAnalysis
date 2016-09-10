@@ -23,12 +23,13 @@ current_direc = pwd;
 save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
 
 
+
 %% BOX PLOT
 
 combinedInfo = cat(1,cort,difference,tactor);
 groups = cat(1,2.*ones(length(cort),1),ones(length(difference),1),0.*ones(length(tactor),1));
 figure
-prettybox(combinedInfo,groups,[1 0 0; 0 0 1; 0 1 0],1,false)
+prettybox(combinedInfo,groups,[1 0 0; 0 0 1; 0 1 0],1,1)
 fig1 = gca;
 
 fig1.XTick = [];
@@ -52,5 +53,44 @@ c.FaceColor = [1 0 0];
 
 title('Histogram of response Times')
 legend({'Cortical Stimulation Response Times','Tactor Response Time','Experimenter Response Time'})
+xlabel('Response time (ms)')
+ylabel('Count')
+
+%% BOX PLOT - just her rxn times
+% kruskal wallis - 9-9-2016
+combinedInfo = cat(1,cort,difference);
+groups = cat(1,2.*ones(length(cort),1),ones(length(difference),1));
+pKruskal = kruskalwallis(combinedInfo,groups);
+[hKolmogorov,pKolmogorov] = kstest2(cort,difference);
+pRank = ranksum(cort,difference);
+
+
+ %% BOX PLOT - just her rxn times
+
+
+figure
+prettybox(combinedInfo,groups,[1 0 0; 0 0 1],1,1)
+sigstar({[1,2]},[pRank])
+fig1 = gca;
+
+fig1.XTick = [];
+legend(findobj(gca,'Tag','Box'),'Cortical Stimulation Response Times','Tactor Response Time')
+ylabel('Response times (ms)')
+title('Reaction Times')
+
+%% HISTOGRAM - just her rxn times 
+
+figure
+nbins = 15;
+a = histogram(cort,nbins);
+a.FaceColor = [0 0 1];
+hold on
+
+hold on
+c = histogram(difference,nbins);
+c.FaceColor = [1 0 0];
+
+title('Histogram of response Times')
+legend({'Cortical Stimulation Response Times','Tactor Response Time'})
 xlabel('Response time (ms)')
 ylabel('Count')
