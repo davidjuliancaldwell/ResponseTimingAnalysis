@@ -105,6 +105,8 @@ ptsTotal(logicalValues) = (ptsTotal(logicalValues)-(floor(fs*timeToDelay)));
 
 filename = sprintf('%s_stimTrainDelivery_%s.txt',sid,fileNum);
 fileID = fopen(filename,'w+');
+
+% should be ptsTotal, not pts - DJC 9-13-2016 
 fprintf(fileID,'%d\r\n',pts);
 fclose(fileID);
 
