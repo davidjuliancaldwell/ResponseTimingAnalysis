@@ -181,7 +181,7 @@ plot(t,stims1)
 
 % get the delay in stim times
 
-delay = floor(0.2867*fs_stim/1e3);
+delay = round(0.2867*fs_stim/1e3);
 
 % plot the appropriately delayed signal
 stimTimesBegin = bursts(2,condType>=100)-1+delay;
@@ -228,7 +228,8 @@ title('Stim voltage monitoring with delay added in - 2nd stim channel')
 
 %% extract data
 % try and account for delay for the stim times
-stimTimes = bursts(2,:)-1+delay;
+stimTimes = bursts(2,:)+delay;
+trainTimes=stimTimes;
 
 % DJC 7-7-2016, changed presamps and post samps to 1 second
 presamps = round(1 * fs_data); % pre time in sec
@@ -425,9 +426,9 @@ buttonLocs{uniqueCond==-1} = buttonTactDiff;
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'s','block','sid','buttonLocs','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
-clearvars -except s buttonLocs block t_epoch stimTimes fs_stim epochedButton epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+clearvars -except s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
 close all
 
