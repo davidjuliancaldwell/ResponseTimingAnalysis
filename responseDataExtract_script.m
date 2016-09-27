@@ -25,7 +25,7 @@ DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
 % DJC Laptop
 %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
 
-sid = SIDS{2};
+sid = SIDS{3};
 %%
 if strcmp(sid,'acabb1') % first subject 
     %% add the right path
@@ -58,9 +58,28 @@ if strcmp(sid,'c19968') % second subject
     
     %extractNeuralData_c19968
     
+end
+
+%%
+if strcmp(sid,'693ffd') % third subject
+    %% add the right path
+    
+    addpath(genpath('693ffd'))
+    %% extract the response times
+    
+    extractStimResponse_693ffd
+    %% compare the response times
+    
+    compareRespTimes_693ffd
+    
+    %% extract the neural data
+    
+    %extractNeuralData_c19968
+    
     
     
 end
+
 
 
 

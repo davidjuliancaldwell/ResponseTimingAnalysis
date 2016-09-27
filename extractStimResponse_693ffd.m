@@ -2,35 +2,29 @@
 
 % this is from my z_constants
 
-sid = SIDS{2};
+sid = SIDS{3};
 
 % ui box for input
-list_str = {'1st block','2nd block','1st block with no tactor','2nd block with no tactor'};
+list_str = {'1st block','2nd block'};
 
 [s,v] = listdlg('PromptString','Pick experiment',...
     'SelectionMode','single',...
     'ListString',list_str);
 
 % load in data
-if (strcmp(sid, 'c19968'))
-    folder_data = strcat(DATA_DIR,'\c19968');
+if (strcmp(sid, '693ffd'))
+    folder_data = strcat(DATA_DIR,'\693ffd');
     
     if s == 1
-        load(fullfile(folder_data,'ReactionTime_c19968-7.mat'))
+        load(fullfile(folder_data,'ReactionTime_693ffd-2.mat'))
         block = '1';
     elseif s == 2
-        load(fullfile(folder_data,'ReactionTime_c19968-11.mat'))
+        load(fullfile(folder_data,'ReactionTime_693ffd-4.mat'))
         block = '2';
-    elseif s == 3
-        load(fullfile(folder_data,'ReactionTime_c19968-3.mat'))
-        block = '1_cort_stimOnly';
-    elseif s == 4
-        load(fullfile(folder_data,'ReactionTime_c19968-4.mat'))
-        block = '1_cort_stimOnly';
-        
     end
     
 end
+
 
 %% load in data of interest
 
@@ -68,10 +62,10 @@ clear Valu
 % vector of condition type - for first subject, looks like condition type
 % is what was used , rather than test_condition
 if s == 2
-    condType= dlmread('rxnTime_condition_2.txt');
+    condType= dlmread('rxnTime_condition_2_modified_9_23_2016.txt');
     train = dlmread('rxnTime_stimTrainDelivery_2.txt');
 else
-    condType= dlmread('rxnTime_condition_1.txt');
+    condType= dlmread('rxnTime_condition_1_9_23_2016.txt');
     train = dlmread('rxnTime_stimTrainDelivery_1.txt');
 end
 
@@ -99,10 +93,10 @@ end
 trainTimesCond_noStim = trainTimes(condType==0);
 trainTimesCond_offTarget = trainTimes(condType==1);
 trainTimesCond_tactor = trainTimes(condType==-1);
-trainTimesCond_100 = trainTimes(condType==100);
-trainTimesCond_200 = trainTimes(condType==200);
-trainTimesCond_400 = trainTimes(condType==400);
-trainTimesCond_800 = trainTimes(condType==800);
+trainTimesCond_100 = trainTimes(condType==2);
+trainTimesCond_200 = trainTimes(condType==3);
+trainTimesCond_400 = trainTimes(condType==4);
+trainTimesCond_800 = trainTimes(condType==5);
 
 %% plot stim
 %
@@ -140,7 +134,7 @@ bursts(1,:) = condType;
 bursts(2,:) = trainTimes;
 bursts(3,:) = trainTimes + samplesOfPulse;
 
-stims1 = squeeze(getEpochSignal(Sing1,(bursts(2,condType>=100)-1),(bursts(3,condType>=100))+1));
+stims1 = squeeze(getEpochSignal(Sing1,(bursts(2,condType>=2)-1),(bursts(3,condType>=2))+1));
 t = (0:size(stims1,1)-1)/fs_sing;
 t = t*1e3;
 figure
@@ -166,7 +160,7 @@ title('Current to be delivered for all trials  on 2nd channel')
 
 % 1st stimulation channel
 stim1 = stim(:,1);
-stim1Epoched = squeeze(getEpochSignal(stim1,(bursts(2,condType>=100)-1),(bursts(3,condType>=100))+1));
+stim1Epoched = squeeze(getEpochSignal(stim1,(bursts(2,condType>=2)-1),(bursts(3,condType>=2))+1));
 t = (0:size(stim1Epoched,1)-1)/fs_stim;
 t = t*1e3;
 figure
