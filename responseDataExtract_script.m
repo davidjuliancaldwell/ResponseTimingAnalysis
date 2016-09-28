@@ -11,6 +11,7 @@ Z_ConstantsStimResponse;
 
 % add path for scripts to work with data tanks
 addpath('./scripts')
+addpath('./scripts/JennysConversionScripts')
 
 % subject directory, change as needed
 % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
@@ -20,10 +21,13 @@ addpath('./scripts')
 %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
 
 % DJC Desktop
-DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+%DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
 
 % DJC Laptop
 %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
+
+% DJC MAC LAPTOP
+DATA_DIR = 'C:\Users\David\Google Drive\GRIDLabDavidShared\ResponseTiming';
 
 sid = SIDS{3};
 %%

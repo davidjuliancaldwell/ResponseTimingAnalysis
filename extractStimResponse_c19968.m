@@ -212,7 +212,7 @@ plot(t,stims2)
 
 % get the delay in stim times
 
-delay = floor(0.2867*fs_stim/1e3);
+delay = round(0.2867*fs_stim/1e3);
 
 % plot the appropriately delayed signal
 stimTimesBegin = bursts(2,condType==1)-1+delay;

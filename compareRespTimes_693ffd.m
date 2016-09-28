@@ -1,7 +1,7 @@
 %% 9-13-2016 - script to compare response times once they've been calculated
 
 % load subject data, need sid still
-% block = '1';
+block = '2';
 load([sid,'_compareResponse_block_',block,'.mat'])
 % set bounds on data, assume rxn time has to be greater than 0.150
 % less than 1 s
@@ -18,7 +18,10 @@ load([sid,'_compareResponse_block_',block,'.mat'])
 % difference = 1e3.*buttonTactDiffTrim(abs(zDiff)<3);
 % cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
 
-%
+
+% if want to change reaction times, do it here! 
+ respLo = 0.100
+ resphi = 1
 
 for i = 1:length(uniqueCond)
     
@@ -40,8 +43,10 @@ uniqueCondText = cellstr(num2str(uniqueCond));
 uniqueCondText{1} = 'tactor';
 uniqueCondText{2} = 'no stimulation';
 uniqueCondText{3} = 'off target stimulation';
-
-
+uniqueCondText{4} = '100 ms train';
+uniqueCondText{5} = '200 ms train';
+uniqueCondText{6} = '400 ms train';
+uniqueCondText{7} = '800 ms train';
 %individual  histogram of each condition type
     figure
 
@@ -116,6 +121,9 @@ groups = [];
 colors = [];
 leg = {};
 
+% modify keeps to not include the empty 100 ms condition 
+keeps = [1 4 5 6 7];
+
 
 j = length(keeps);
 k = 1;
@@ -133,7 +141,7 @@ figure
 prettybox(combinedInfo,groups,colors,1,true)
 fig1 = gca;
 
-ylim([140 600])
+ylim([50 1000])
 fig1.XTick = [];
 legend(findobj(gca,'Tag','Box'),leg)
 ylabel('Response times (ms)')

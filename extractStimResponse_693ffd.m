@@ -40,7 +40,7 @@ clear Stim
 fs_data = ECO1.info.SamplingRateHz;
 %
 %
-% clear ECO1 ECO2 ECO3
+clear ECO1 ECO2 ECO3
 % data = [eco1 eco2 eco3];
 % clear  eco1 eco2 eco3
 
@@ -65,7 +65,7 @@ if s == 2
     condType= dlmread('rxnTime_condition_2_modified_9_23_2016.txt');
     train = dlmread('rxnTime_stimTrainDelivery_2.txt');
 else
-    condType= dlmread('rxnTime_condition_1_9_23_2016.txt');
+    condType= dlmread('rxnTime_condition_1_modified_9_23_2016.txt');
     train = dlmread('rxnTime_stimTrainDelivery_1.txt');
 end
 
@@ -178,8 +178,8 @@ plot(t,stims1)
 delay = round(0.2867*fs_stim/1e3);
 
 % plot the appropriately delayed signal
-stimTimesBegin = bursts(2,condType>=100)-1+delay;
-stimTimesEnd = bursts(3,condType>=100)-1+delay;
+stimTimesBegin = bursts(2,condType>=2)-1+delay;
+stimTimesEnd = bursts(3,condType>=2)-1+delay;
 stim1Epoched = squeeze(getEpochSignal(stim1,stimTimesBegin,stimTimesEnd));
 t = (0:size(stim1Epoched,1)-1)/fs_stim;
 t = t*1e3;
@@ -206,7 +206,7 @@ plot(t,stims2)
 
 % get the delay in stim times
 
-delay = floor(0.2867*fs_stim/1e3);
+delay = round(0.2867*fs_stim/1e3);
 
 % plot the appropriately delayed signal
 stimTimesBegin = bursts(2,condType==1)-1+delay;
@@ -306,7 +306,8 @@ linkaxes([ax1,ax2,ax3,ax4,ax5],'x')
 % set respLo and respHi, which are the values which for less or greater
 % than rxn times aren't analyzed
 
-respLo = 0.150;
+% started with respLo - 0.150, try 0.100 
+respLo = 0.100;
 respHi = 1;
 
 %% 9-13-2016 - start quantifying data
@@ -323,7 +324,7 @@ findpeaks(buttonDataClip,t_button,'MinpeakDistance',2,'Minpeakheight',0.008);
 hold on
 plot(t_stimFile,stimFromFile,'g');
 plot(t_stimFile,stim1,'r');
-plot(t_stimFile,stim2,'m');
+%plot(t_stimFile,stim2,'m');
 
 legend({'Button Data','Button Press Onset Peaks','Stimulation Times From File','S1 stim output','Off Target Stim Output'})
 
