@@ -14,9 +14,15 @@ zTact = zscore(tactorLocsVecTactTrim);
 zDiff = zscore(buttonTactDiffTrim);
 zCort = zscore(buttonLocsVecCortTrim);
 
-tactor = 1e3.*tactorLocsVecTactTrim(abs(zTact)<3);
-difference = 1e3.*buttonTactDiffTrim(abs(zDiff)<3);
-cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
+%tactor = 1e3.*tactorLocsVecTactTrim(abs(zTact)<3);
+%difference = 1e3.*buttonTactDiffTrim(abs(zDiff)<3);
+%cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
+
+% DJC 12-9-2016 - do thresholding later if wanted, to match the other two
+% subjects 
+tactor = 1e3.*tactorLocsVecTact;
+difference = 1e3.*buttonTactDiff;
+cort = 1e3.*buttonLocsVecCort;
 
 current_direc = pwd;
 

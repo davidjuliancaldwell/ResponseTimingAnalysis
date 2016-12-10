@@ -29,7 +29,7 @@ addpath('./scripts/JennysConversionScripts')
 % DJC MAC LAPTOP
 DATA_DIR = 'C:\Users\David\Google Drive\GRIDLabDavidShared\ResponseTiming';
 
-sid = SIDS{3};
+sid = SIDS{1};
 %%
 if strcmp(sid,'acabb1') % first subject 
     %% add the right path

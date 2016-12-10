@@ -18,7 +18,7 @@
 % %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
 % 
 % % DJC Desktop
-% DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
 % 
 % % DJC Laptop
 % %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
