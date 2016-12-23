@@ -1,7 +1,6 @@
 %% 9-13-2016 - script to compare response times once they've been calculated
 
 % load subject data, need sid still
-block = '2';
 load([sid,'_compareResponse_block_',block,'.mat'])
 % set bounds on data, assume rxn time has to be greater than 0.150
 % less than 1 s
@@ -20,8 +19,8 @@ load([sid,'_compareResponse_block_',block,'.mat'])
 
 
 % if want to change reaction times, do it here! 
- respLo = 0.100
- resphi = 1
+ respLo = 0.100;
+ resphi = 1;
 
 for i = 1:length(uniqueCond)
     
@@ -122,7 +121,7 @@ colors = [];
 leg = {};
 
 % modify keeps to not include the empty 100 ms condition 
-keeps = [1 4 5 6 7];
+keeps = [1 5 6 7];
 
 
 j = length(keeps);

@@ -21,12 +21,17 @@ load([sid,'_compareResponse_block_',block,'.mat'])
 %
 
 for i = 1:length(uniqueCond)
+    % 12-10-2016
+    respLo = 0.150;
+    respHi = 1;
+    
     
     trim = buttonLocs{i};
     trim = trim(trim>respLo & trim<respHi);
     zTrim = zscore(trim);
     buttonLocsThresh{i} = 1e3.*trim(abs(zTrim)<3);
-    
+    %buttonLocsThresh{i} = 1e3.*trim;
+
 end
 
 
@@ -106,6 +111,11 @@ legend(leg)
 %% BOX PLOT
 
 % change colormap to matlab default lines
+
+% DJC - 12/10/2016
+% Exclude 100 ms case 
+keeps = [1 4 5 6 7];
+
 
 colormap lines;
 cmap = colormap ;
