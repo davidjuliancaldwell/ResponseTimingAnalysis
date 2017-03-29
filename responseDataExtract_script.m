@@ -11,7 +11,7 @@ Z_ConstantsStimResponse;
 
 % add path for scripts to work with data tanks
 addpath('./scripts')
-addpath('./scripts/JennysConversionScripts')
+%addpath('./scripts/JennysConversionScripts')
 
 % subject directory, change as needed
 % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
@@ -21,15 +21,15 @@ addpath('./scripts/JennysConversionScripts')
 %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
 
 % DJC Desktop
-%DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 
 % DJC Laptop
 %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
 
 % DJC MAC LAPTOP
-DATA_DIR = 'C:\Users\David\Google Drive\GRIDLabDavidShared\ResponseTiming';
+%DATA_DIR = 'C:\Users\David\Google Drive\GRIDLabDavidShared\ResponseTiming';
 
-sid = SIDS{1};
+sid = SIDS{4};
 %%
 if strcmp(sid,'acabb1') % first subject 
     %% add the right path
@@ -83,6 +83,26 @@ if strcmp(sid,'693ffd') % third subject
     
     
 end
+
+if strcmp(sid,'2fd831') % third subject
+    %% add the right path
+    
+    addpath(genpath('2fd831'))
+    %% extract the response times
+    
+    extractStimResponse_2fd831
+    %% compare the response times
+    
+    compareRespTimes_2fd831
+    
+    %% extract the neural data
+    
+    %extractNeuralData_2fd831
+    
+    
+    
+end
+
 
 
 
