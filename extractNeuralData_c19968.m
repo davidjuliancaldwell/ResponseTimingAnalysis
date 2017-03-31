@@ -1,33 +1,6 @@
 %% look at the neural data in response to cortical stimulation
 
-% load in subject
-
-% this is from my z_constants
-%
-% % clear workspace
-% close all; clear all; clc
-%
-% % set input output working directories - for David's PC right now
-% Z_ConstantsStimResponse;
-%
-% % add path for scripts to work with data tanks
-% addpath('./scripts')
-%
-% % subject directory, change as needed
-% % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-%
-% % data directory
-%
-% %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-%
-% % DJC Desktop
-% DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
-%
-% % DJC Laptop
-% %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
-%
-% SIDS = {'acabb1'};
-
+% this data is DC coupled
 %%
 sid = SIDS{2};
 
@@ -62,7 +35,7 @@ end
 %% neural data
 
 % the eco data is crashing it right now
-clearvars -except ECO1 ECO2 Tact sid block
+clearvars -except ECO1 ECO2 ECO3 Tact sid block s
 eco1 = ECO1.data;
 fs_data = ECO1.info.SamplingRateHz;
 eco_fs = fs_data;
@@ -70,10 +43,40 @@ clear ECO1
 eco2 = ECO2.data;
 clear ECO2
 
+eco3 = ECO3.data;
+clear ECO3
 
-data = [eco1 eco2];
-clearvars eco1 eco2
 
+data = [eco1 eco2 eco3];
+clearvars eco1 eco2 eco3
+
+% DC coupled - get rid of end
+if s ==1
+data = data(1:5456873,:);
+elseif s == 2
+    data = data(1:5456873,:);
+end
+
+% only 80 channels
+
+dataTemp = data(:,1:80);
+clear data
+data = dataTemp;
+clear dataTemp;
+%%
+% subtract mean? Or line fit?
+for i = 1:size(data,2)
+
+data_int = data(:,i);
+[p,s,mu] = polyfit((1:numel(data_int))',data_int,10);
+f_y = polyval(p,(1:numel(data_int))',[],mu);
+
+data(:,i) = data(:,i) - f_y;
+end
+
+plot(data(:,10));
+hold on
+%%
 load([sid,'_compareResponse_block_',block,'.mat'])
 
 %% get train times
@@ -99,15 +102,17 @@ trainTimesConvert = round(stimTimes/convertSamps);
 prompt = {'Channel of interest?','Trim ends?','condition'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'10','y','-1'};
+defaultans = {'10','y','200'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
+% options for this subject are -1,0,1,100,200,400,800
 chanInt = str2num(answer{1});
 trimEnds = answer{2};
-condInt = str2num(answer{3});
-condInt = find(uniqueCond==condInt);
+condIntAns = str2num(answer{3});
+condInt = find(uniqueCond==condIntAns);
 % where to begin plotting with artifact
-artifact_end = round(0.05*eco_fs);
+%artifact_end = round(0.05*eco_fs);
+artifact_end = 0;
 
 %where to end plotting
 sampsEnd = round(2*eco_fs);
@@ -137,6 +142,54 @@ epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt} + ar
 % get pre stim period for comparison
 epochedPreStim = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt} - presamps), trainTimesCellThresh{condInt}));
 
+
+%% ARTIFACT
+if (condIntAns == 100 || condIntAns == 200 || condIntAns == 400 || condIntAns == 800)
+    
+    %stim_train_length = condIntAns;
+    stim_train_length = 2000;
+    time_post_stim = round(stim_train_length/1e3*eco_fs);
+    
+    epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt}),(trainTimesCellThresh{condInt}+ time_post_stim)));
+      
+end
+
+t_epoch = [1:size(epochedCortEco,1)]/eco_fs;
+
+exampChan = mean(squeeze(epochedCortEco(:,chanInt,:)),2);
+
+figure
+plot(1e3*t_epoch,exampChan);
+
+% Process the signal with ICA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+scale_factor = 10;
+numComponentsSearch = 15;
+plotIt = true;
+stimChans = [9 17 50 58 ];
+meanSub = 1;
+
+[subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
+    ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
+
+%%
+processed_data = subtracted_sig_matrixS_I;
+% process the wavelet using morlet process and PLV
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% trial by trial wavelet decomp, PLV 
+time_res = 0.050; % 50 ms bins 
+%[PLV,powerout,f_morlet,t_morlet,phase_angle] = neural_analysis_calcs(processed_data,eco_fs,
+[~,powerout,f_morlet,t_morlet] = neural_analysis_calcs(processed_data,eco_fs,time_res);
+
+
+% example wavelet decomp 
+trialInt = 20; % which channel to check out 
+figure 
+imagesc(1e3*t_morlet,f_morlet,powerout(:,:,chanInt,trialInt));
+axis xy
+xlabel('time (ms)')
+ylabel('frequency')
+%%
 % plot channel of interest
 figure
 
@@ -144,8 +197,11 @@ figure
 t_epoch = [artifact_end:artifact_end+size(epochedCortEco,1)-1]/eco_fs;
 t_epochPre = [-presamps:0-1]/eco_fs;
 
-exampChanPost = mean(squeeze(epochedCortEco(:,chanInt,:)),2)-mean(exampChanPost);
-exampChanPre = mean(squeeze(epochedPreStim(:,chanInt,:)),2)-mean(exampChanPre);
+exampChanPost = mean(squeeze(epochedCortEco(:,chanInt,:)),2);
+exampChanPre = mean(squeeze(epochedPreStim(:,chanInt,:)),2);
+
+%exampChanPost = mean(squeeze(epochedCortEco(:,chanInt,:)),2)-mean(exampChanPost);
+%exampChanPre = mean(squeeze(epochedPreStim(:,chanInt,:)),2)-mean(exampChanPre);
 
 
 subplot(2,1,1)

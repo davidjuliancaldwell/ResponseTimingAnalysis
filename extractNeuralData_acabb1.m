@@ -4,7 +4,7 @@
 
 % this is from my z_constants
 %
-% % clear workspace
+% clear workspace
 % close all; clear all; clc
 %
 % % set input output working directories - for David's PC right now
@@ -29,7 +29,7 @@
 % SIDS = {'acabb1'};
 
 %%
-sid = SIDS{1};
+%sid = SIDS{1};
 
 % ui box for input
 list_str = {'sensory stimulation','tactor stimulation','off target stimulation'};
@@ -108,7 +108,7 @@ cort = 1e3.*buttonLocsVecCortTrim(abs(zCort)<3);
 prompt = {'Channel of interest?','Trim ends?'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
-defaultans = {'50','y'};
+defaultans = {'54','y'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans);
 
 chanInt = str2num(answer{1});
@@ -117,15 +117,12 @@ trimEnds = answer{2};
 if s == 1
     
     % pick condition type where stimulation was delivered
-    if s == 1
         trainTimesCond1 = trainTimes(condType==0);
-    elseif s == 2
-        trainTimesCond1 = trainTimes(condType==0 | condType==1);
-    end
     
     % where to begin plotting with artifact
-    artifact_end = round(0.21*eco_fs);
-    
+    %artifact_end = round(0.21*eco_fs);
+    artifact_end = round(0*eco_fs);
+
     %where to end plotting
     sampsEnd = round(2*eco_fs);
     
@@ -134,7 +131,7 @@ if s == 1
     
     % only pick train times which met certain threshold
     trainTimesScreen = trainTimesCond1(buttonLocsVecCort>respLo & buttonLocsVecCort<respHi);
-    trainTimesScreen = trainTimesScreen(abs(zCort)< 3 );
+    %trainTimesScreen = trainTimesScreen(abs(zCort)< 3 );
     
     
     % epoched button press, before stim to after
@@ -359,7 +356,7 @@ if s == 1
     axis xy
     xlabel('time (ms)');
     ylabel('frequency (hz)');
-    title(['Normalized wavelet data for Channel ', num2str(chanInt)])
+    title(['Post wavelet data for Channel ', num2str(chanInt)])
     
     
     
@@ -370,22 +367,17 @@ if s == 1
     axis xy
     xlabel('time (ms)');
     ylabel('frequency (hz)');
-    title(['Normalized wavelet data for Channel ', num2str(chanInt)])
+    title(['Pre wavelet data for Channel ', num2str(chanInt)])
     
     
     
-    
-    
+
     
 elseif s ==2
+    % tactor brain data 
     
-    
-    % pick condition type where stimulation was delivered
-    if s == 1
-        trainTimesCond1 = trainTimes(condType==0);
-    elseif s == 2
+
         trainTimesCond1 = trainTimes(condType==0 | condType==1);
-    end
     
     sampsEnd = round(2*fs_stim);
     
@@ -396,5 +388,3 @@ elseif s ==2
     t_epoch = [0:size(epochedButton,1)-1]/fs_stim;
     plot(t_epoch,epochedButton);
 end
-
-%% tactor brain data

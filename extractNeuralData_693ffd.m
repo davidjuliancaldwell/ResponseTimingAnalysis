@@ -1,35 +1,5 @@
 %% look at the neural data in response to cortical stimulation
 
-% load in subject
-
-% this is from my z_constants
-%
-% % clear workspace
-% close all; clear all; clc
-%
-% % set input output working directories - for David's PC right now
-% Z_ConstantsStimResponse;
-%
-% % add path for scripts to work with data tanks
-% addpath('./scripts')
-%
-% % subject directory, change as needed
-% % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-%
-% % data directory
-%
-% %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-%
-% % DJC Desktop
-% DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
-%
-% % DJC Laptop
-% %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
-%
-% SIDS = {'acabb1'};
-
-%%
-sid = SIDS{3};
 
 % ui box for input
 list_str = {'1st block','2nd block'};
@@ -57,7 +27,7 @@ end
 %% neural data
 
 % the eco data is crashing it right now
-clearvars -except ECO1 ECO2 Tact sid block
+clearvars -except ECO1 ECO2 ECO3 Tact sid block s
 eco1 = ECO1.data;
 fs_data = ECO1.info.SamplingRateHz;
 eco_fs = fs_data;
@@ -65,10 +35,34 @@ clear ECO1
 eco2 = ECO2.data;
 clear ECO2
 
+eco3 = ECO3.data;
+clear ECO3
 
-data = [eco1 eco2];
-clearvars eco1 eco2
 
+data = [eco1 eco2 eco3];
+clearvars eco1 eco2 eco3
+
+% git rid of the bit where it jumps down at the end
+if s==1
+data = data(1:5441534,:);
+elseif s == 2
+    data = data(1:5456873,:);
+end
+%%
+% subtract mean? Or line fit?
+for i = 1:size(data,2)
+
+data_int = data(:,i);
+[p,s,mu] = polyfit((1:numel(data_int))',data_int,10);
+f_y = polyval(p,(1:numel(data_int))',[],mu);
+
+data(:,i) = data(:,i) - f_y;
+end
+
+plot(data(:,10));
+hold on
+
+%%
 load([sid,'_compareResponse_block_',block,'.mat'])
 
 %% get train times
@@ -131,6 +125,39 @@ epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt} + ar
 
 % get pre stim period for comparison
 epochedPreStim = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt} - presamps), trainTimesCellThresh{condInt}));
+
+
+%% ARTIFACT
+if (condIntAns == 100 || condIntAns == 200 || condIntAns == 400 || condIntAns == 800)
+    
+    stim_train_length = condInt;
+    time_post_stim = round(stim_train_length/1e3*eco_fs);
+    
+    epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt}),(trainTimesCellThresh{condInt}+ time_post_stim)));
+      
+end
+
+t_epoch = [1:size(epochedCortEco,1)]/eco_fs;
+
+exampChan = mean(squeeze(epochedCortEco(:,chanInt,:)),2);
+
+figure
+plot(1e3*t_epoch,exampChan);
+
+channelInt = 10;
+scale_factor = 100;
+numComponentsSearch = 10;
+plotIt = true;
+stimChans = [9 17 50 58];
+
+[subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
+    ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,channelInt);
+
+
+
+
+%%
+
 
 % plot channel of interest
 figure
