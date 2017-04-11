@@ -1,9 +1,7 @@
-function [PLV,powerout,f,t,phase_angle] = neural_analysis_calcs(signal,fs,time_res)
+function [powerout,f,t,phase_angle] = neural_analysis_calcs(signal,fs,time_res)
 % This is a function to run on the response timing data collected by David
 % Caldwell and Jeneva Cronin while in the GRIDLab. This uses a
-% morletprocess script as implemented by James Wu, and a PLV function
-% developed by Praneeth Namburi . 
-% Required inputs are a:
+% morletprocess script as implemented by James Wu
 % signal:
 %   time x channels x trials
 % fs:
@@ -13,31 +11,9 @@ function [PLV,powerout,f,t,phase_angle] = neural_analysis_calcs(signal,fs,time_r
 %
 % OUTPUT 
 % powerout - freq x time x channel x trial
-% PLV - time x channel x channel x numConditions 
+
 %
 % DJC 3-30-2017
-
-% PLV
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% calculate filter order
-% alpha
-
-desired_f = 10;
-period = 1/desired_f;
-time_4oscil = period*4; % time total in seconds
-order = round(time_4oscil*fs);
-
-filtSpec.order = order;
-filtSpec.range = [8 12];
-
-% need channels x time x trials
-signal_perm = permute(signal,[2,1,3]);
-[PLV] = pn_eegPLV(signal_perm,fs,filtSpec);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 % Morlet Process
 %%%%%%%%%%%%%%%%%%%
@@ -66,4 +42,6 @@ end
 
 if ~exist('phase_angle','var')
    phase_angle = []; 
+end
+
 end
