@@ -1,34 +1,3 @@
-%% look at the neural data in response to cortical stimulation
-
-% load in subject
-
-% this is from my z_constants
-%
-% clear workspace
-% close all; clear all; clc
-%
-% % set input output working directories - for David's PC right now
-% Z_ConstantsStimResponse;
-%
-% % add path for scripts to work with data tanks
-% addpath('./scripts')
-%
-% % subject directory, change as needed
-% % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-%
-% % data directory
-%
-% %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-%
-% % DJC Desktop
-% DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
-%
-% % DJC Laptop
-% %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
-%
-% SIDS = {'acabb1'};
-
-%%
 %sid = SIDS{1};
 
 % ui box for input
@@ -117,7 +86,7 @@ trimEnds = answer{2};
 if s == 1
     
     % pick condition type where stimulation was delivered
-        trainTimesCond1 = trainTimes(condType==0);
+    trainTimesCond1 = trainTimes(condType==0);
     
     % where to begin plotting with artifact
     %artifact_end = round(0.21*eco_fs);

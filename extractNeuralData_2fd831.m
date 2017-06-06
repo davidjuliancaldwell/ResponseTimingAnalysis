@@ -41,11 +41,11 @@ data = [eco1 eco2 eco3];
 clearvars eco1 eco2 eco3
 
 % git rid of the bit where it jumps down at the end
-
+%%
 if s==1
-    data = data(1:5919724,:);
+    data = data(1:5919739,:);
 elseif s == 2
-    data = data(1:5456873,:);
+    data = data(1:6989821,:);
 end
 
 % only 64 channels grid
@@ -57,7 +57,7 @@ data = data(:,1:64);
 % for i = 1:size(data,2)
 %     plot(data(:,i))
 %         title(num2str(i))
-% 
+%
 %     pause(1)
 % end
 
@@ -66,14 +66,15 @@ data = data(:,1:64);
 order_poly = 10;
 data = polyfitSubtract(data,order_poly);
 
+%%
 figure
-plot(data(:,10));
+plot(data(:,2));
 hold on
 
 %%
 load([sid,'_compareResponse_block_',block,'.mat'])
 
-%% get train times
+% get train times
 
 % look at stim from file saved (this is the sample where things were
 % delivered
@@ -124,16 +125,16 @@ for i = 1:length(uniqueCond)
     trim = trim(trim>respLo & trim<respHi);
     zTrim = zscore(trim);
     if ~isempty(trainTimesCell{i}) % check to make sure not indexing empty cell
-         %trainTimesCellThresh{i} = trainTimesCell{i}(abs(zTrim)<3); % z score
+        %trainTimesCellThresh{i} = trainTimesCell{i}(abs(zTrim)<3); % z score
         % buttonLocsThresh = buttLocs{i}(abs(zTrim)<3);
         
-            trainTimesCellThresh{i} = trainTimesCell{i};% no zscore 
-            buttonLocsThresh{i} = buttonLocs{i};% no zscore 
-
+        trainTimesCellThresh{i} = trainTimesCell{i};% no zscore
+        buttonLocsThresh{i} = buttonLocs{i};% no zscore
+        
     end
 end
 
-%% ARTIFACT
+% ARTIFACT
 if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
     
     %stim_train_length = condIntAns;
@@ -151,16 +152,27 @@ end
 
 if condIntAns == -1
     
-    post_stim = 3000;
+    post_stim = 2000;
+    %post_stim = 5000;
+    
     samps_post_stim = round(post_stim/1e3*eco_fs);
     
-    pre_stim = 0;
+    pre_stim = 1000;
+    %pre_stim = 5000;
+    
     samps_pre_stim = round(pre_stim/1e3*eco_fs);
     
     %response = buttonLocsThresh{condInt} + tactorLocsVec;
     response = buttonLocsThresh{condInt};
     response_samps = round(tactorLocsVec*eco_fs);
-    epochedCortEco = squeeze(getEpochSignal(data,((trainTimesCellThresh{condInt}+response_samps)-samps_pre_stim),((trainTimesCellThresh{condInt}+response_samps)+ samps_post_stim)));
+    
+    % get rid of instances where for response samps where the tactor didn't
+    % make contact
+    
+    response = response(~isnan(response_samps));
+    
+    % extract region of interest
+    epochedCortEco = squeeze(getEpochSignal(data,((trainTimesCellThresh{condInt}(~isnan(response_samps))+response_samps(~isnan(response_samps)))-samps_pre_stim),((trainTimesCellThresh{condInt}(~isnan(response_samps))+response_samps(~isnan(response_samps)))+ samps_post_stim)));
     
     
 end
@@ -172,96 +184,203 @@ exampChan = mean(squeeze(epochedCortEco(:,chanInt,:)),2);
 
 figure
 plot(1e3*t_epoch,exampChan);
-xlim([0 1000])
+xlim([-1000 2000])
 ylim([-10e-5 10e-5])
-clear exampChan
+title(['Subject ' sid ' Channel ' num2str(chanInt) ' Condition ' num2str(condIntAns)])
+%clear exampChan
 
-%%
+
+icaProcess = 1;
+
 % Process the signal with ICA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
-    
-    if s ==1
-        scale_factor = 30;
-        numComponentsSearch = 10;
-    elseif s == 2
-        scale_factor = 30;
-        numComponentsSearch = 10;
+if icaProcess
+    if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
         
-        %      scale_factor = 1000;
-        %      numComponentsSearch = 20;
-        
-    end
-    plotIt = true;
-%stimChans = [1 9 24 32];
-stimChans = [1 9 24 29 32]; % 29 was bad too
-
-    meanSub = 1;
-    %
-    % [subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
-    %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
-    
-    orderPoly = 2;
-    [subtracted_sig_matrixS_I,~,~,~,t] = ...
-        ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
-    
-    stimTime = zeros(size(subtracted_sig_matrixS_I,3));
-elseif (condIntAns == -1)
-    
-    meanSub = 1;
-    
-    if meanSub == 1
-        for i = 1:size(epochedCortEco,2)
-            for j = 1:size(epochedCortEco,3)
-                data_int_temp = squeeze(epochedCortEco(:,i,j));
-                [p,s,mu] = polyfit((1:numel(data_int_temp))',data_int_temp,6);
-                f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
-                
-                % subtract poly fit
-                subtracted_sig_matrixS_I(:,i,j) = data_int_temp - f_y;
-                
-            end
+        if s ==1
+            scale_factor = 1000;
+            numComponentsSearch = 100;
+        elseif s == 2
+            scale_factor = 100;
+            numComponentsSearch = 100;
+            
+            %      scale_factor = 1000;
+            %      numComponentsSearch = 20;
             
         end
-    else
-        subtracted_sig_matrixS_I = epochedCortEco;
+        plotIt = true;
+        %stimChans = [1 9 24 32];
+        stimChans = [1 9 24 29 32]; % 29 was bad too
+        
+        meanSub = 1;
+        %
+        % [subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
+        %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
+        
+        orderPoly = 3;
+        [processedSig_noArt,~,~,~,t] = ...
+            ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
+               
+        % after ICA process, try notching
+        lnFreqs = [60 120 180 240 300 360 420 480 540];
+        order = 3;
+        % exclude bad channels
+        badChanMask = ones(64,1);
+        badChanMask(stimChans) = 0;
+        badChanMask = logical(badChanMask);
+        % notch filter
+        %tempProcessedSig = notch(processedSig(:,badChanMask,:),lnFreqs,eco_fs,order);
+        %%
+        % waveletDenoise
+        %         for i = 1:size(processedSig_noArt,2)
+        %             for j = 1:size(processedSig_noArt,3)
+        %                 tempProcessedSig_IND = wden(squeeze(processedSig_noArt(:,i,j)),'modwtsqtwolog','s','mln',8,'sym16');
+        %                 tempProcessedSig(:,i,j) = tempProcessedSig_IND;
+        %             end
+        %         end
+        %
+%         figure
+%         i = 2; % channel
+%         j = 10; % trial
+%         plot(processedSig_noArt(:,i,j))
+%         hold on
+%         plot(tempProcessedSig(:,i,j))
+%         plot(epochedCortEco(:,i,j))
+%         legend({'Signal Post ICA','Signal post wavelet denoising','Original signal'})
+%         
+        %     for i = 1:size(processedSig,2)
+        %         for j = 1:size(processedSig,3)
+        %             tempProcessedSig_IND = wden(squeeze(epochedCortEco(:,i,j)),'modwtsqtwolog','s','mln',15,'db25');
+        %             if i == 10
+        %             figure
+        %             subplot(2,1,1)
+        %             plot(tempProcessedSig_IND)
+        %             ylims = ylim;
+        %             subplot(2,1,2)
+        %             plot(squeeze(epochedCortEco(:,i,j)))
+        %             ylim(ylims);
+        %             tempProcessedSig(:,i,j) = tempProcessedSig_IND;
+        %             pause(1)
+        %             end
+        %         end
+        %     end
+        
+        
+        % common average reference
+%         tempProcessedSig = tempProcessedSig - repmat(mean(tempProcessedSig,2),[1,size(tempProcessedSig,2),1]);
+        processedSig = processedSig_noArt;
+        % processedSig = tempProcessedSig;
+        processedSig(:,~badChanMask,:) = 0;
+        
+    elseif (condIntAns == -1)
+        processedSig = [];
+        meanSub = 1;
+        orderPoly = 6;
+        
+        if meanSub == 1
+            for i = 1:size(epochedCortEco,2)
+                for j = 1:size(epochedCortEco,3)
+                    data_int_temp = squeeze(epochedCortEco(:,i,j));
+                    [p,s,mu] = polyfit((1:numel(data_int_temp))',data_int_temp,orderPoly);
+                    f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
+                    
+                    % subtract poly fit
+                    processedSig_noArt(:,i,j) = data_int_temp - f_y;
+                    clearvars p s mu f_y
+                end
+                
+            end
+        else
+            processedSig_noArt = epochedCortEco;
+        end
+        
+        %subtracted_sig_matrixS_I = epochedCortEco;
+        %stimTime = 1e3*tactorLocsVec; %
+        stimTime = zeros(size(processedSig_noArt,3)); % it is centered around zero now
+        
+        % exclude bad channel
+        
+        stimChans = [1 9 24 29 32];
+        lnFreqs = [60 120 180 240 300 360 420 480 540];
+        order = 3;
+        % exclude bad channels
+        badChanMask = ones(64,1);
+        badChanMask(stimChans) = 0;
+        
+        badChanMask = logical(badChanMask);
+        % notch filter
+        %tempProcessedSig = notch(processedSig(:,badChanMask,:),lnFreqs,eco_fs,order);
+        
+        % waveletDenoise
+        for i = 1:size(processedSig_noArt,2)
+            for j = 1:size(processedSig_noArt,3)
+                tempProcessedSig_IND = wden(squeeze(processedSig_noArt(:,i,j)),'modwtsqtwolog','s','mln',8,'sym8');
+                tempProcessedSig(:,i,j) = tempProcessedSig_IND;
+            end
+        end
+        
+        % common average reference
+        tempProcessedSig = tempProcessedSig - repmat(mean(tempProcessedSig,2),[1,size(tempProcessedSig,2),1]);
+        
+        processedSig = processedSig_noArt;
+        processedSig(:,badChanMask,:) = tempProcessedSig;
+        
     end
-    
-    subtracted_sig_matrixS_I = epochedCortEco;
-    %stimTime = 1e3*tactorLocsVec; %
-    stimTime = zeros(size(subtracted_sig_matrixS_I,3)); % it is centered around zero now 
+%     figure
+%     for i = 1:size(processedSig,2)
+%         plot(mean(squeeze(processedSig(:,i,:)),2))
+%         title(['Channel ' num2str(i)])
+%         pause(1)
+%     end
+%     
 end
 
-return
+        stimTime = zeros(size(processedSig,3));
 
+        
+% Try wavelet denoising
 
-%% PROCESS THE DATA
+waveletDenoise = false;
+
+if waveletDenoise
+    nc = 15;
+    br = 7;
+    er = 15;
+    plotIt = 1;
+    ec = 10;
+    et = 10;
+    
+    
+    processedSig = wavelet_denoise(epochedCortEco,'numComponents',nc,'beginRecon',br,'endRecon',er,...
+        'plotIt',plotIt,'exampChan',ec,'exampTrial',et);
+    stimTime = zeros(size(processedSig,3));
+    
+    % median subtract
+    processedSig_medianS = processedSig - repmat(mean(processedSig,2),[1,size(processedSig,2),1]);
+end
+
+% PROCESS THE DATA
 % process the wavelet using morlet process and PLV
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % trial by trial wavelet decomp, PLV
 
 %%%%%% PLV
 freq_range = [8 12];
-[plv] = plvWrapper(subtracted_sig_matrixS_I,eco_fs,freq_range);
-
-plv(:,stimChans,:,:) = 0;
-plv(:,:,stimChans,:) = 0;
+[plv] = plvWrapper(processedSig,eco_fs,freq_range,stimChans);
 
 %%%%%%% wavelet
 time_res = 0.050; % 50 ms bins
 
-[powerout,f_morlet,t_morlet,~] = waveletWrapper(subtracted_sig_matrixS_I,eco_fs,time_res);
+[powerout,f_morlet,t_morlet,~] = waveletWrapper(processedSig,eco_fs,time_res,stimChans);
 
 t_morlet = linspace(-pre_stim,post_stim,length(t_morlet))/1e3;
 
 
-powerout(:,:,stimChans,:) = 0;
-
 %% Visualize wavelets
 
 % example wavelet decomp
+%chanInt = 2;
 chanInt = 10;
-
 
 for i = 1:size(powerout,4)
     figure;
@@ -275,8 +394,8 @@ for i = 1:size(powerout,4)
     vline(1e3*response(i),'g','response')
     
     %figure;
-    h1 = subplot(3,1,2)
-    plot(1e3*t_epoch,subtracted_sig_matrixS_I(:,chanInt,i))
+    h1 = subplot(3,1,2);
+    plot(1e3*t_epoch,processedSig(:,chanInt,i))
     vline(stimTime(i),'r','stim')
     xlabel('time (ms)');
     ylabel('microvolts')
@@ -284,7 +403,7 @@ for i = 1:size(powerout,4)
     vline(1e3*response(i),'g','response')
     ylim_h1 = ylim;
     
-    h2 = subplot(3,1,3)
+    h2 = subplot(3,1,3);
     plot(1e3*t_epoch,epochedCortEco(:,chanInt,i))
     vline(stimTime(i),'r','stim')
     xlabel('time (ms)');
@@ -297,7 +416,17 @@ for i = 1:size(powerout,4)
     
 end
 
+% plot average channel
+exampChan = mean(squeeze(processedSig(:,chanInt,:)),2);
 
+figure
+plot(1e3*t_epoch,exampChan);
+xlim([-1000 2000])
+ylim([-10e-5 10e-5])
+title(['Subject ' sid ' Channel ' num2str(chanInt) ' Condition ' num2str(condIntAns)])
+%clear exampChan
+
+return
 % sort by reaction time
 % sort by reaction time
 
@@ -305,7 +434,7 @@ end
 %% Visualize PLV
 
 % chan 1 is the lower valued chan, so e.g., 17, 20
-chan1 = 1;
+chan1 = 2;
 chan2 = 10;
 figure;
 
@@ -325,6 +454,22 @@ vline(0)
 xlabel('Time (s)');
 ylabel('Plase Locking Value');
 title(['PLV between Channel ' num2str(chan1) ' and ' num2str(chan2)])
+
+t1 = 0;
+t2 =  0.2;
+
+t_sub = t_epoch((t_epoch>t1 & t_epoch<t2));
+plv_sub = plv((t_epoch>t1 & t_epoch<t2),:,:);
+
+figure;
+max_plv = squeeze(max(plv_sub,[],1));
+imagesc(max_plv);
+h = colorbar;
+h.Limits = [0 1];
+xlabel('Channel')
+ylabel('Channel')
+title(['Max Phase Locking Value between T  = ' num2str(t1) ' seconds and T = ' num2str(t2) ' seconds'])
+
 
 return
 

@@ -215,12 +215,12 @@ if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
     %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
     
     orderPoly = 6;
-    [subtracted_sig_matrixS_I,~,~,~,t] = ...
+    [processedSig,~,~,~,t] = ...
         ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
     
     stimTime = zeros(size(subtracted_sig_matrixS_I,3));
 elseif (condIntAns == -1)
-    
+    processedSig = [];
     meanSub = 1;
     
     if meanSub == 1
@@ -231,20 +231,26 @@ elseif (condIntAns == -1)
                 f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
                 
                 % subtract poly fit
-                subtracted_sig_matrixS_I(:,i,j) = data_int_temp - f_y;
+                processedSig(:,i,j) = data_int_temp - f_y;
                 
             end
             
         end
     else
-        subtracted_sig_matrixS_I = epochedCortEco;
+        processedSig = epochedCortEco;
     end
     
-    
-    subtracted_sig_matrixS_I = epochedCortEco;
+    %subtracted_sig_matrixS_I = epochedCortEco;
     %stimTime = 1e3*tactorLocsVec; %
-    stimTime = zeros(size(subtracted_sig_matrixS_I,3)); % it is centered around zero now 
-
+    stimTime = zeros(size(processedSig,3)); % it is centered around zero now 
+    
+    % exclude bad channel
+    
+    stimChans = [1 9 24 29 32];
+    lnFreqs = [60 120 180 240 300 360 420 480 540];
+    order = 3;
+    processedSig = notch(processedSig,lnFreqs,eco_fs,order);
+    
 end
 
 return
@@ -256,24 +262,19 @@ return
 
 %%%%%% PLV
 freq_range = [8 12];
-[plv] = plvWrapper(subtracted_sig_matrixS_I,eco_fs,freq_range);
-
-plv(:,stimChans,:,:) = 0;
-plv(:,:,stimChans,:) = 0;
-
+[plv] = plvWrapper(processedSig,eco_fs,freq_range,stimChans);
+%%
 %%%%%%% wavelet
 time_res = 0.050; % 50 ms bins
 
-[powerout,f_morlet,t_morlet,~] = waveletWrapper(subtracted_sig_matrixS_I,eco_fs,time_res);
+[powerout,f_morlet,t_morlet,~] = waveletWrapper(processedSig,eco_fs,time_res,stimChans);
 
 t_morlet = linspace(-pre_stim,post_stim,length(t_morlet))/1e3;
-
-
-powerout(:,:,stimChans,:) = 0;
 
 %% Visualize wavelets
 
 % example wavelet decomp
+
 chanInt = 22;
 
 
@@ -290,7 +291,7 @@ for i = 1:size(powerout,4)
     
     %figure;
     h1 = subplot(3,1,2)
-    plot(1e3*t_epoch,subtracted_sig_matrixS_I(:,chanInt,i))
+    plot(1e3*t_epoch,processedSig(:,chanInt,i))
     vline(stimTime(i),'r','stim')
     xlabel('time (ms)');
     ylabel('microvolts')
@@ -310,7 +311,6 @@ for i = 1:size(powerout,4)
     linkaxes([h1,h2],'xy')
     
 end
-
 % sort by reaction time
 
 

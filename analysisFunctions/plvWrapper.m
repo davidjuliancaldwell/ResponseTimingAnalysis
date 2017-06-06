@@ -1,4 +1,4 @@
-function [plv] = plvWrapper(signal,fs,freq_range)
+function [plv] = plvWrapper(signal,fs,freq_range,badChans)
 % This is a function to run on the response timing data collected by David
 % Caldwell and Jeneva Cronin while in the GRIDLab. This uses a
 %a PLV function developed by Praneeth Namburi . 
@@ -7,12 +7,18 @@ function [plv] = plvWrapper(signal,fs,freq_range)
 %   time x channels x trials
 % fs:
 %   sampling rate in Hz
-
+% badChans:
+%   channels to ignore
+%
 %
 % OUTPUT 
 % PLV - time x channel x channel x numConditions 
 %
 % DJC 3-30-2017
+
+if ~exist('badChans','var')
+   badChans = []; 
+end
 
 desired_f = round(freq_range(1)+freq_range(2))/2;
 period = 1/desired_f;
@@ -25,6 +31,9 @@ filtSpec.range = freq_range;
 % need channels x time x trials
 signal_perm = permute(signal,[2,1,3]);
 [plv] = pn_eegPLV(signal_perm,fs,filtSpec);
+
+plv(:,badChans,:,:) = 0;
+plv(:,:,badChans,:) = 0;
 
 
 end

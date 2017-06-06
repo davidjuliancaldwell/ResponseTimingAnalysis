@@ -1,4 +1,4 @@
-function [powerout,f,t,phase_angle] = neural_analysis_calcs(signal,fs,time_res)
+function [powerout,f,t,phase_angle] = waveletWrapper(signal,fs,time_res,badChans)
 % This is a function to run on the response timing data collected by David
 % Caldwell and Jeneva Cronin while in the GRIDLab. This uses a
 % morletprocess script as implemented by James Wu
@@ -8,6 +8,8 @@ function [powerout,f,t,phase_angle] = neural_analysis_calcs(signal,fs,time_res)
 %   sampling rate in Hz
 % time_res:
 %   time resolution for morlet process
+% badChans:
+%   channels to ignore
 %
 % OUTPUT 
 % powerout - freq x time x channel x trial
@@ -18,23 +20,35 @@ function [powerout,f,t,phase_angle] = neural_analysis_calcs(signal,fs,time_res)
 % Morlet Process
 %%%%%%%%%%%%%%%%%%%
 num_trials = size(signal,3);
-powerout = [];
 
+if ~exist('badChans','var')
+   badChans = []; 
+end
 
+badChansMask = ones(size(signal,2),1);
+badChansMask(badChans) = 0;
+badChansMask = logical(badChansMask);
+signalTemp = signal(:,badChansMask,:);
+
+totalChans = size(signal,2);
 
 for i = 1:num_trials
     
-    data_temp = signal(:,:,i);
+    data_temp = signalTemp(:,:,i);
     % compute f and t once
     if i == 1
         [powerout_temp, f, t] = morletprocess(data_temp, fs, time_res);
-        powerout(:,:,:,i) = powerout_temp;
+        poweroutTemp(:,:,:,i) = powerout_temp;
     end
     [powerout_temp] = morletprocess( data_temp, fs, time_res);
-    powerout(:,:,:,i) = powerout_temp;
+    poweroutTemp(:,:,:,i) = powerout_temp;
     
    
 end
+
+powerout(:,:,badChansMask,:) = poweroutTemp;
+powerout(:,:,~badChansMask,:) = 0;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

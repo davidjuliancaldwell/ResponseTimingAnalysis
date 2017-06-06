@@ -29,7 +29,7 @@ DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 % DJC MAC LAPTOP
 %DATA_DIR = 'C:\Users\David\Google Drive\GRIDLabDavidShared\ResponseTiming';
 
-sid = SIDS{4};
+sid = SIDS{2};
 %%
 if strcmp(sid,'acabb1') % first subject 
     %% add the right path

@@ -62,7 +62,7 @@ clear Valu
 % is what was used , rather than test_condition, BOTH blocks used the same
 % file 
     condType= dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_condition_1_modified_9_23_2016.txt');
-    train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_stimTrainDelivery_1.txt');
+     train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_stimTrainDelivery_1.txt');
 
 % stim cue from file
 stimFromFile = tact(:,3);
@@ -428,6 +428,7 @@ buttonLocs{uniqueCond==-1} = buttonTactDiff;
 current_direc = pwd;
 
 save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+
 
 %clearvars -except s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
