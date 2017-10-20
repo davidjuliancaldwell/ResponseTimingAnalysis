@@ -132,7 +132,7 @@ trainTimesConvert = round(stimTimes/convertSamps);
 
 chanInt = 1;
 trimEnds = 'y';
-condIntAns = 200;
+condIntAns = 400;
 
 condInt = find(uniqueCond==condIntAns);
 % where to begin plotting with artifact
@@ -177,20 +177,13 @@ end
 
 if (condIntAns == 100 || condIntAns == 200 || condIntAns == 400 || condIntAns == 800)
     
-    %stim_train_length = condIntAns;
-    stim_train_length = 2000;
     post_stim = 2000;
-    %post_stim = 1000;
-    
     samps_post_stim = round(post_stim/1e3*eco_fs);
     
-    pre_stim = 1000;
-    %pre_stim = 500;
-    
+    pre_stim = 1000; 
     samps_pre_stim = round(pre_stim/1e3*eco_fs);
     
     epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt})-samps_pre_stim,(trainTimesCellThresh{condInt}+ samps_post_stim)));
-    
     response = buttonLocsThresh{condInt};
 end
 
@@ -209,6 +202,9 @@ if condIntAns == -1
     
     
 end
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %t_epoch = [1:size(epochedCortEco,1)]/eco_fs;
 t_epoch = (-samps_pre_stim:samps_post_stim-1)/eco_fs;
@@ -382,12 +378,7 @@ for i = 1:length(uniqueCond)
 end
 
 %%
-% fs-tact was twice that of eco, so need to go back to eco sampling rate to
-% shift reactions
-%rxnTimes = buttonLocsSamps{condInt};
-
-rxnTimes = round(buttonLocsSamps{condInt}/2);
-
+rxnTimes = buttonLocsSamps{condInt};
 [sorted,indexes] = sort(rxnTimes);
 sorted_sig = sig(:,:,indexes);
 
@@ -396,11 +387,11 @@ sorted_basedOffFirst = sorted - sorted(1);
 sig_shifted = sorted_sig;
 
 for i = 2:size(sig,3)
-    sig_shifted(:,:,i) = circshift(sorted_sig(:,:,i),-sorted_basedOffFirst(i),1);
+    sig_shifted(:,:,i) = circshift(sorted_sig(:,:,i),sorted_basedOffFirst(i),1);
 end
 
 avgResponse = mean(sig_shifted,3);
-t_shift = t - sorted(1)/fs_data;
+t_shift = t - sorted(1)/fs_stim;
 smallMultiples_responseTiming(avgResponse,t_shift,'type1',stimChans,'type2',0,'average',1)
 
 %%
@@ -408,21 +399,10 @@ smallMultiples_responseTiming(avgResponse,t_shift,'type1',stimChans,'type2',0,'a
 figure
 hold on
 
-i = 20
-
-plot(1e3*t_shift,sorted_sig(:,10,i))
-plot(1e3*t_shift,sig_shifted(:,10,i))
+plot(t_shift,sorted_sig(:,10,1))
+plot(t_shift,sig_shifted(:,10,1))
 legend({'original','shift'})
 vline(0)
-xlim([-200 1000])
-
-figure
-hold on
-plot(1e3*t,sorted_sig(:,10,i))
-plot(1e3*t,sig_shifted(:,10,i))
-legend({'original','shift'})
-vline(0)
-xlim([-200 1000])
 
 
 

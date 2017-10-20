@@ -7,9 +7,9 @@ orderPoly = 2;
 
 % lower bound for scale factor
 lb = [1];
-ub = [10000];
+ub = [2000];
 % starting scale factor 
-x0 = [1];
+x0 = [500];
 
 
 for i=1:2:(length(varargin)-1)
