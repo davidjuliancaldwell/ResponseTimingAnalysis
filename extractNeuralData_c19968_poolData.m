@@ -5,16 +5,7 @@
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 addpath('./scripts')
-%addpath('./scripts/JennysConversionScripts')
 
-% subject directory, change as needed
-% SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-
-% data directory
-
-%PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-
-% DJC Desktop
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 sid = SIDS{2};
 
@@ -44,7 +35,6 @@ for s = s_vec
     end
     
     %% neural data
-    % the eco data is crashing it right now
     clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR s s_vec folder_data epochedCortEco_cell
     eco1 = ECO1.data;
     fs_data = ECO1.info.SamplingRateHz;
@@ -154,10 +144,11 @@ for s = s_vec
         epochedCortEco_cell{s}{i} = epochedCortEco;  
     end
     
+    t_epoch = (-samps_pre_stim:samps_post_stim-1)/eco_fs;
 end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData.mat']),'-v7.3','epochedCortEco_cell','fs_data');
+save(fullfile(current_direc, [sid 'pooledData.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
 
 return

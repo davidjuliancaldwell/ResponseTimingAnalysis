@@ -48,12 +48,11 @@ for ind  = 1:numTrials
     
     % huber loss for region outside of artifact
     sigma = 1;
-    huberOutsideArtifact = huber_loss(raw_sig(~art,:,ind),processedSig(~art,:,ind),sigma);   % mean sq error for region outside of artifact
+    huberOutsideArtifact = huber_loss(raw_sig(~art,:,ind),processedSig(~art,:,ind),sigma);  
     
     
     % huber loss for region inside artifact 
-    huberInsideArtifact = huber_loss(raw_sig(art,:,ind),artifactSig(art,:,ind),sigma); % what is the standard deviation of the artifact - if too big, then there's lots of stim still there!
-    
+    huberInsideArtifact = huber_loss(raw_sig(art,:,ind),artifactSig(art,:,ind),sigma); 
     % build up matrix trial by trial
     meanSqError_mat(:,ind) = meanSqError;
     artifactSize_mat(:,ind) = artifactSize;

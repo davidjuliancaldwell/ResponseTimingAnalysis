@@ -3,6 +3,7 @@
 % this is from my z_constants
 
 sid = SIDS{2};
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 
 % ui box for input
 list_str = {'1st block','2nd block','1st block with no tactor','2nd block with no tactor'};

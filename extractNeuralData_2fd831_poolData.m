@@ -4,16 +4,7 @@
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 addpath('./scripts')
-%addpath('./scripts/JennysConversionScripts')
 
-% subject directory, change as needed
-% SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-
-% data directory
-
-%PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-
-% DJC Desktop
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 sid = SIDS{4};
 
@@ -117,7 +108,7 @@ for s = s_vec
             
         end
     end
-    
+    %%
     for i = 1:length(uniqueCond)
         
         condIntAns = uniqueCond(i);
@@ -146,19 +137,23 @@ for s = s_vec
             %response = buttonLocsThresh{condInt} + tactorLocsVec;
             response = buttonLocsThresh{i};
             response_samps = round(tactorLocsVec*eco_fs);
-            epochedCortEco = squeeze(getEpochSignal(data,((trainTimesCellThresh{i}+response_samps)-samps_pre_stim),((trainTimesCellThresh{i}+response_samps)+ samps_post_stim)));
             
+            % 11-3-2017 - account for nan's in response_samps vector
+            response_mask = (~isnan(response_samps));
+            
+            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i}(response_mask)+response_samps(response_mask)-samps_pre_stim),(trainTimesCellThresh{i}(response_mask)+response_samps(response_mask)+ samps_post_stim)));
             
         end
         
         epochedCortEco_cell{s}{i} = epochedCortEco;
     end
+    t_epoch = (-samps_pre_stim:samps_post_stim-1)/eco_fs;
     
 end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData.mat']),'-v7.3','epochedCortEco_cell','fs_data');
+save(fullfile(current_direc, [sid 'pooledData.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
 
 return
 

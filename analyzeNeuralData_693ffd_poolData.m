@@ -4,8 +4,7 @@ close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
-sid = SIDS{2};
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
+sid = SIDS{3};
 
 load(fullfile([sid 'pooledData.mat']));
 %%
@@ -26,19 +25,19 @@ for i = 1:length(buttonLocsSamps)
 end
 
 for i = 1:length(buttonLocsSamps)
-    data{i} = cat(3,[epochedCortEco_cell{1}{i}], [epochedCortEco_cell{2}{i}]);
+    data{i} = cat(3,[epochedCortEco_cell{1}{i}(:,1:53,:)], [epochedCortEco_cell{2}{i}(:,1:53,:)]);
 end
+
 
 clearvars epochedCortEco_cell buttonLocsSamps_cell_ind
 t_epoch = t_epoch_good;
 
-
 %% get data of interest
-condInt = 1;
+condInt = 6;
 condIntAns = uniqueCond(condInt);
 dataInt = data{condInt};
 buttonLocsInt = buttonLocs{condInt};
-chanInt = 10;
+chanInt = 17;
 
 % additional parameters
 post_stim = 2000;
@@ -52,9 +51,9 @@ ica_optimize = 0;
 
 if ica_optimize
     
-    stimChans = [9 17 50 58];
+    stimChans = [20 29];
     x0 = 50;
-    [x history searchdir] = optimize_ICA(data,'fs',eco_fs,'meansub',0,'orderpoly',1,'stimChans',stimChans,'x0',x0)
+    [x history searchdir] = optimize_ICA(dataInt,'fs',eco_fs,'meansub',0,'orderpoly',1,'stimChans',stimChans,'x0',x0)
     
 end
 
@@ -64,7 +63,7 @@ end
 icaProcess = 1;
 if icaProcess
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if (condIntAns == 100 || condIntAns == 200 || condIntAns == 400 || condIntAns == 800)
+    if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
         
         % USEFUL
         %     if s ==1
@@ -76,17 +75,24 @@ if icaProcess
         %         scale_factor = 100;
         %         numComponentsSearch = 10;
         
-        scale_factor = 500;
-        numComponentsSearch = 76;
+        % This was for SFN poster - 400 ms stim train
+        %scale_factor = 600;
+        %numComponentsSearch = 20;
         
-        % scale factor from ICA_optimize first run 4-27-2017 was
-        % 12.1607
+        % for stim train 100
         
-        plotIt = 0;
-        % stimChans = [9 17 50 58 ]; % 29 looks bad too - DJC 10-12-2017
-        stimChans = [9 17 29 50 58 ]; % 29 looks bad too - DJC 10-12-2017
+%         scale_factor = 500;
+%         numComponentsSearch = 53;
         
-        meanSub = 1;
+        plotIt = false;
+        %stimChans = [20 29 57 58]; already excluded 57 and 58, which were the off target channels from analysis up
+        %top
+        
+        stimChans = [20 29];
+        
+        meanSub = 0;
+        
+        chanInt = 28;
         %
         %         [subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
         %             ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,fs_data,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
@@ -98,17 +104,19 @@ if icaProcess
         
         
         % %
-        %         [processedSig,~,~,~,t] = ...
-        %             ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,fs_data,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
+               [processedSig,~,~,~,t] = ...
+                     ica_artifact_remove_train(t_epoch,dataInt,stimChans,fs_data,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
         %
-        [processedSig,~,~,~,t] = ...
-            ica_train(t_epoch,dataInt,stimChans,fs_data,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
-        
+        %[processedSig,~,~,~,t] =...
+         %   ica_train(t_epoch,dataInt,stimChans,fs_data,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub,orderPoly);
+        %
         
         stimTime = zeros(size(processedSig,3));
+        
+        
     elseif (condIntAns == -1)
         
-        meanSub = 1;
+        meanSub = 0;
         %orderPoly = 6;
         orderPoly = 3; %10-12-2017 - djc change
         if meanSub == 1
@@ -132,13 +140,14 @@ if icaProcess
         stimTime = zeros(size(processedSig,3)); % it is centered around zero now
         t = t_epoch;
     end
-    
 end
-%
-chanIntList = [1 10 51 42];
+
+chanIntList = [21 28 19 36 44 43 30];
+
+% evaluate goodness of fit
+
 
 for ind = chanIntList
-    %t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
     
     exampChan = mean(squeeze(processedSig(:,ind,:)),2);
     
@@ -164,35 +173,35 @@ end
 
 % 9-28-2017 - save intermediate data for plotting response map
 
-%%
+    %%
 sig = processedSig;
 avgResponse = mean(sig,3);
 
-stimChans = [17 9];
-chansInt = [1 2 3 9 10 11 17 18 19 25 26 27];
+stimChans = [20 29];
 
 smallMultiples_responseTiming(avgResponse,t,'type1',stimChans,'type2',0,'average',1)
 
 %save([sid '_block' num2str(block) '_postICAProcessData'],processsedSig,'-v7.3')
 
+%# sort by rxn time
+
+% load subject data, need sid still
+%load([sid,'_compareResponse_block_',block,'.mat'])
+% 
 % for i = 1:length(uniqueCond)
 %     % 12-10-2016
 %     respLo = 0.150;
 %     respHi = 1;
-%
-%
+%     
+%     
 %     trim = buttonLocs{i};
 %     trim = trim(trim>respLo & trim<respHi);
 %     zTrim = zscore(trim);
 %     buttonLocsThresh{i} = 1e3.*trim(abs(zTrim)<3);
 %     %buttonLocsThresh{i} = 1e3.*trim;
-%
+%     
 % end
 
-stimChans = [17 9 50 58];
-
-
-%%
 %%
 rxnTimes = buttonLocs{condInt};
 [sorted,indexes] = sort(rxnTimes);
@@ -213,22 +222,22 @@ t_shift = t - sorted(1)/fs_stim;
 smallMultiples_responseTiming(avgResponse,t_shift,'type1',stimChans,'type2',0,'average',1)
 
 %%
-
+%
 % figure
 % hold on
-% 
+%
 % plot(t_shift,sorted_sig(:,10,1))
 % plot(t_shift,sig_shifted(:,10,1))
 % legend({'original','shift'})
 % vline(0)
-% 
-% 
-% 
-% %
-% 
+%
+%
+%
+% %%
+%
 % for i = 1:size(sig,3)
 %     figure
-%     
+%
 %     plot(sig_shifted(:,10,i))
 %     hold on
 %     plot(sorted_sig(:,10,i))
@@ -258,33 +267,43 @@ return
 
 % example wavelet decomp
 %trialInt = 20; % which channel to check out
-chanInt = 1;
+chanInt = 27;
 
-t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
+%t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
 
-response = buttonLocs{condInt}/fs_data
+response = buttonLocs{condInt}/(2*fs_data);
+ cmap=flipud(cbrewer('div', 'RdBu', 13));
+ colormap(cmap)
+ 
+ powerout_norm = normalize_spectrogram(powerout,t_morlet);
+
 
 for i = 1:size(powerout,4)
+ 
     totalFig = figure;
     totalFig.Units = 'inches';
     totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
     subplot(3,1,1);
-    imagesc(1e3*t_morlet,f_morlet,powerout(:,:,chanInt,i));
+    imagesc(1e3*t_morlet,f_morlet,powerout_norm(:,:,chanInt,i));
+     cmap=flipud(cbrewer('div', 'RdBu', 13));
+ colormap(cmap)
     axis xy;
     xlabel('time (ms)');
     ylabel('frequency (Hz)');
     title(['Wavelet decomposition Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
-    vline(stimTime(i),'r','stim')
+    vline(stimTime(i),'m','stim')
     vline(1e3*response(i),'g','response')
     xlim([-200 1000]);
+    %colorbar()
+    caxis([-3 3])
     set(gca,'fontsize',14)
     
-   
+    
     
     %figure;
     h1 = subplot(3,1,2);
     plot(1e3*t_epoch,1e6*processedSig(:,chanInt,i))
-    vline(stimTime(i),'r','stim')
+    vline(stimTime(i),'m','stim')
     xlabel('time (ms)');
     ylabel('microvolts')
     title(['Processed Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
@@ -298,7 +317,7 @@ for i = 1:size(powerout,4)
     
     h2 = subplot(3,1,3);
     plot(1e3*t_epoch,1e6*dataInt(:,chanInt,i))
-    vline(stimTime(i),'r','stim')
+    vline(stimTime(i),'m','stim')
     xlabel('time (ms)');
     ylabel('microvolts')
     title(['Raw Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
@@ -312,7 +331,7 @@ for i = 1:size(powerout,4)
     linkaxes([h1,h2],'xy');
     
 end
-%% normalized spectogram 
+%% normalized spectogram
 
 powerout_norm = normalize_spectrogram(powerout,t_morlet);
 
@@ -322,11 +341,7 @@ smallMultiples_responseTiming_spectrogram(avg_power_norm,t_morlet,f_morlet,'type
 %%
 % plot average spectrogram
 
-% normalize 
-
-
 avg_power = mean(powerout,4);
-
 smallMultiples_responseTiming_spectrogram(avg_power,t_morlet,f_morlet,'type1',stimChans,'type2',0,'average',1)
 
 
@@ -334,31 +349,13 @@ smallMultiples_responseTiming_spectrogram(avg_power,t_morlet,f_morlet,'type1',st
 
 % sort by reaction time
 
-%% Try wavelet denoising
-
-nc = 15;
-br = 8;
-er = 15;
-plotIt = 1;
-ec = 10;
-et = 10;
-
-
-processedSig = wavelet_denoise(epochedCortEco,'numComponents',nc,'beginRecon',br,'endRecon',er,...
-    'plotIt',plotIt,'exampChan',ec,'exampTrial',et);
-
-stimTime = zeros(size(processedSig,3));
-stimChans = [9 17 50 58 ];
-
-% median subtract
-processedSig_medianS = processedSig - repmat(mean(processedSig,2),[1,size(processedSig,2),1]);
 
 
 %% Visualize PLV
 
 % chan 1 is the lower valued chan, so e.g., 17, 20
-chan1 = 2;
-chan2 = 18;
+chan1 = 3;
+chan2 = 58;
 figure;
 
 % probably want to discard the number of samples for the order of the
@@ -395,6 +392,25 @@ title(['Max Phase Locking Value between T  = ' num2str(t1) ' seconds and T = ' n
 
 
 return
+
+%% Try wavelet denoising
+
+nc = 15;
+br = 8;
+er = 15;
+plotIt = 1;
+ec = 10;
+et = 10;
+
+
+processedSig = wavelet_denoise(epochedCortEco,'numComponents',nc,'beginRecon',br,'endRecon',er,...
+    'plotIt',plotIt,'exampChan',ec,'exampTrial',et);
+
+stimTime = zeros(size(processedSig,3));
+stimChans = [9 17 50 58 ];
+
+% median subtract
+processedSig_medianS = processedSig - repmat(mean(processedSig,2),[1,size(processedSig,2),1]);
 
 % Below here is old
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

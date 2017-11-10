@@ -1,7 +1,7 @@
 function [x,history,searchdir] = optimize_ICA(data,varargin)
 
 scale_factor = 1000;
-stimChans = [9 17 50 58 ];
+stimChans = [];
 meanSub = 0;
 orderPoly = 2;
 
@@ -56,7 +56,7 @@ options = optimoptions(@fmincon,'OutputFcn',@outfun,'diffminchange',5,'Display',
 % [x,fval,exitflag,output,lambda,grad,hessian] = fmincon(@(x)ica_train_optimize(x,data,stimChans,fs,meanSub,orderPoly),...
 %     x0,[],[],[],[],lb,ub,[],options);
 
-[x] = fmincon(@(x)ica_train_optimize(x,data,stimChans,fs,meanSub,orderPoly),...
+[x] = fmincon(@(x)ica_train_optimize_subtract(x,data,stimChans,fs,meanSub,orderPoly),...
     x0,[],[],[],[],lb,ub,[],options);
 
 function stop = outfun(x,optimValues,state)

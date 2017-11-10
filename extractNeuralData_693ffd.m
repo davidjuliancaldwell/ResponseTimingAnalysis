@@ -150,9 +150,8 @@ end
 if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
     
     %stim_train_length = condIntAns;
-    stim_train_length = 2000;
     post_stim = 2000;
-    samps_post_stim = round(stim_train_length/1e3*eco_fs);
+    samps_post_stim = round(post_stim/1e3*eco_fs);
     
     pre_stim = 1000;
     samps_pre_stim = round(pre_stim/1e3*eco_fs);
@@ -246,7 +245,10 @@ elseif (condIntAns == -1)
     
     % exclude bad channel
     
-    stimChans = [1 9 24 29 32];
+    stimChans = [20 29];
+
+    %stimChans = [1 9 24 29 32]; this might be from the other subject???
+    %2fd831 
     lnFreqs = [60 120 180 240 300 360 420 480 540];
     order = 3;
     processedSig = notch(processedSig,lnFreqs,eco_fs,order);

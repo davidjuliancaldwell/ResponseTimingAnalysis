@@ -1,7 +1,11 @@
 %% load in subject
 
 % this is from my z_constants
+Z_ConstantsStimResponse;
+% add path for scripts to work with data tanks
+addpath('./scripts')
 
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 sid = SIDS{4};
 
 % ui box for input
@@ -341,7 +345,8 @@ epochedButton = {};
 
 % the last trial of the epoched button press for the null condition is
 % clipped - so omit that one
-%trainTimesTotal{2}(end) = [];
+
+trainTimesTotal{2}(end) = [];
 
 for i = 1:length(uniqueCond)
     epochedButton{i} = squeeze(getEpochSignal(buttonDataClip,trainTimesTotal{i},(trainTimesTotal{i} + sampsEnd)));
@@ -350,67 +355,99 @@ end
 epochedTactor = squeeze(getEpochSignal(tactorData,trainTimesTotal{1},trainTimesTotal{1} + sampsEnd));
 
 t_epoch = [0:size(epochedTactor,1)-1]/fs_stim;
+t_epoch_samps = [0:size(epochedTactor,1)-1];
+
 
 buttonPks = {};
 buttonLocs = {};
 
+buttonPksSamps = {};
+buttonLocsSamps = {};
+
 buttonPksTempVec = [];
 buttonLocsTempVec = [];
 
-tactorPksVec = [];
-tactorLocsVec = [];
-
+buttonPksTempVecSamps = [];
+buttonLocsTempVecSamps = [];
 %%
 for i = 1:length(uniqueCond)
     
     % for stimulation condititions
     if uniqueCond(i)~=-1
-        buttonPksTempVec = [];
-        buttonLocsTempVec = [];
-        
-        
         for j = 1:length(trainTimesTotal{i})
             [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton{i}(:,j),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+            [buttonPksTempSamps,buttonLocsTempSamps] = findpeaks(epochedButton{i}(:,j),t_epoch_samps,'NPeaks',1,'Minpeakheight',0.008); % get sample number DJC 10-12-2017
+
             if isempty(buttonPksTemp)
                 buttonPksTemp = NaN;
                 buttonLocsTemp = NaN;
+                buttonPksTempSamps = NaN;
+                buttonLocsTempSamps = NaN;
             end
             buttonPksTempVec(j) = buttonPksTemp;
             buttonLocsTempVec(j) = buttonLocsTemp;
+                        
+            % do samples too 
+            buttonPksTempVecSamps(j) = buttonPksTempSamps;
+            buttonLocsTempVecSamps(j) = buttonLocsTempSamps;
         end
         buttonPks{i} = buttonPksTempVec;
         buttonLocs{i} = buttonLocsTempVec;
+        
+        buttonPksSamps{i} = buttonPksTempVecSamps;
+        buttonLocsSamps{i} = buttonLocsTempVecSamps;
+        
         
         % for tactor target condition
     elseif uniqueCond(i)==-1
         for j = 1:length(trainTimesTotal{i})
             
             [buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton{i}(t_epoch>1,j)),t_epoch(t_epoch>1),'NPeaks',1,'Minpeakheight',0.008);
+            [buttonPksTempSamps,buttonLocsTempSamps] = findpeaks((epochedButton{i}(t_epoch_samps>24415,j)),t_epoch_samps(t_epoch_samps>24415),'NPeaks',1,'Minpeakheight',0.008);
+
             sprintf(['button ' num2str(buttonLocsTemp)])
+            sprintf(['button ' num2str(buttonLocsTempSamps)])
 
             [tactorPksTemp,tactorLocsTemp] = findpeaks((epochedTactor(:,j)),t_epoch,'NPeaks',1,'Minpeakheight',1);
+            [tactorPksTempSamps,tactorLocsTempSamps] = findpeaks((epochedTactor(:,j)),t_epoch_samps,'NPeaks',1,'Minpeakheight',1);
 
             sprintf(['tactor ' num2str(tactorLocsTemp)])
-            
+            sprintf(['tactor ' num2str(tactorLocsTempSamps)])
+
             if isempty(buttonPksTemp)
                 buttonPksTemp = NaN;
                 buttonLocsTemp = NaN;
+                buttonPksTempSamps = NaN;
+                buttonLocsTempSamps = NaN;
             end
             
             if isempty(tactorPksTemp)
                 tactorPksTemp = NaN;
                 tactorLocsTemp = NaN;
+                tactorPksTempSamps = NaN;
+                tactorLocsTempSamps = NaN;
+
             end
             
             buttonPksTempVec(j) = buttonPksTemp;
             buttonLocsTempVec(j) = buttonLocsTemp;
+                        
+            % do samples too 
+            buttonPksTempVecSamps(j) = buttonPksTempSamps;
+            buttonLocsTempVecSamps(j) = buttonLocsTempSamps;
             
             tactorPksVec(j) = tactorPksTemp;
             tactorLocsVec(j) = tactorLocsTemp;
+                       
+            tactorPksVecSamps(j) = tactorPksTempSamps;
+            tactorLocsVecSamps(j) = tactorLocsTempSamps;
         end
         
         buttonPks{i} = buttonPksTempVec;
         buttonLocs{i} = buttonLocsTempVec;
+        
+        buttonPksSamps{i} = buttonPksTempVecSamps;
+        buttonLocsSamps{i} = buttonLocsTempVecSamps;
         
         
     end
@@ -420,18 +457,19 @@ end
 % calculate differences - MAKE SURE YOU ONLY DO THIS ONCE
 
 buttonTactDiff = buttonLocs{uniqueCond==-1} - tactorLocsVec;
+buttonTactDiffSamps = buttonLocsSamps{uniqueCond==-1} - tactorLocsVecSamps;
+
 
 buttonLocs{uniqueCond==-1} = buttonTactDiff;
+buttonLocsSamps{uniqueCond==-1} = buttonTactDiffSamps;
 
 %% save it
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
+clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
-%clearvars -except s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
-
-%close all
-
+close all
 
