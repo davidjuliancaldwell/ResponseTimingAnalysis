@@ -1,10 +1,10 @@
-function evaluated_value = objective_func_ica_huber(raw_sig,processedSig,artifactSig,varargin)
+function [evaluated_value,huberInside_mat,huberOutside_mat] = objective_func_ica_huber(raw_sig,processedSig,artifactSig,varargin)
 
 numTrials = size(raw_sig,3);
 numChans = size(raw_sig,2);
 
-meanSqError_mat = zeros(numChans,numTrials);
-artifactSize_mat = zeros(numChans,numTrials);
+huberInside_mat = zeros(numChans,numTrials);
+huberOutside_mat = zeros(numChans,numTrials);
 
 % default params
 fs = 1.2207e04;
@@ -13,7 +13,7 @@ plotIt = 0;
 for i=1:2:(length(varargin)-1)
     
     switch lower(varargin{i})
-        case 'plotIt'
+        case 'plotit'
             plotIt = varargin{i+1};
         case 'fs'
             fs = varargin{i+1};
@@ -31,8 +31,8 @@ for ind  = 1:numTrials
     [~,chanMax] = max(max(diff_sig));
     
     % find onset
-    startInd = find(abs(zscore(diff_sig(:,chanMax)))>0.1,1,'first');
-    endInd = find(abs(zscore(diff_sig(:,chanMax)))>0.1,1,'last');
+    startInd = find(abs(zscore(diff_sig(:,chanMax)))>3,1,'first');
+    endInd = find(abs(zscore(diff_sig(:,chanMax)))>3,1,'last');
     if plotIt
         figure
         hold on
@@ -47,36 +47,41 @@ for ind  = 1:numTrials
     art = logical(art);
     
     % huber loss for region outside of artifact
+    sigma = 1e-4;
+    huberOutsideArtifact = huber_loss(raw_sig(~art,:,ind),processedSig(~art,:,ind),sigma);
+    
+    
+    % huber loss for region inside artifact
     sigma = 1;
-    huberOutsideArtifact = huber_loss(raw_sig(~art,:,ind),processedSig(~art,:,ind),sigma);  
-    
-    
-    % huber loss for region inside artifact 
-    huberInsideArtifact = huber_loss(raw_sig(art,:,ind),artifactSig(art,:,ind),sigma); 
+
+    huberInsideArtifact = huber_loss(raw_sig(art,:,ind),artifactSig(art,:,ind),sigma);
     % build up matrix trial by trial
-    meanSqError_mat(:,ind) = meanSqError;
-    artifactSize_mat(:,ind) = artifactSize;
+    huberInside_mat(:,ind) = huberInsideArtifact;
+    huberOutside_mat(:,ind) = huberOutsideArtifact;
     
-    if plotIt
-        figure
-        hold on
-        trial_inds = [1:numTrials];
-        for ind = trial_inds
-            scatter(repmat(ind,[size(huberOutsideArtifact,1),1]),huberOutsideArtifact(:,ind))
-        end
-        
-        figure
-        hold on
-        trial_inds = [1:numTrials];
-        for ind = trial_inds
-            scatter(repmat(ind,[size(huberInsideArtifact,1),1]),huberInsideArtifact(:,ind))
-        end
-    end
     
 end
 
-% 
-evaluated_value = 1e6*mean(mean(huberOutsideArtifact))+1e6*mean(mean(huberInsideArtifact));
+if plotIt
+    figure
+    hold on
+    trial_inds = [1:numTrials];
+    for ind = trial_inds
+        scatter(repmat(ind,[size(huberOutsideArtifact,1),1]),huberOutsideArtifact(:,ind))
+    end
+    
+    figure
+    hold on
+    trial_inds = [1:numTrials];
+    for ind = trial_inds
+        scatter(repmat(ind,[size(huberInsideArtifact,1),1]),huberInsideArtifact(:,ind))
+    end
+end
+%
+weight_inside = 1;
+weight_outside = 1/5*weight_inside;
+
+evaluated_value = weight_outside*mean(mean(huberOutsideArtifact))+weight_inside*mean(mean(huberInsideArtifact));
 
 
 end
