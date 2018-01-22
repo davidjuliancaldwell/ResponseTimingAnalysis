@@ -9,7 +9,8 @@ channelInt = 45;
 
 % lower bound for num components factor
 lb = [3];
-ub = [size(data,2)];
+%ub = [size(data,2)-numel(stimChans)];
+ub = 20;
 % starting scale factor
 test_points = [lb:1:ub];
 nonlinears_cell = {'pow3','tanh','gauss','skew'};
@@ -40,15 +41,17 @@ end
 
 matrix_vals = zeros(length(test_points),length(nonlinears_cell));
 
-for i = 1:length(test_points)
+parfor i = 1:length(test_points)
+    evaluated_value_mat = zeros(4,1);
     for j = 1:length(nonlinears_cell)
         nonlinear = nonlinears_cell{j};
         numComponentsSearch = test_points(i);
-        [evaluated_value,huberInside_mat,huberOutside_mat,processedSig,recon_artifact] =  ica_train_optimize_subtract_ResponseTiming(data,stimChans,fs,numComponentsSearch,scale_factor,meanSub,orderPoly,plotIt,channelInt,nonlinear);
-        matrix_vals(i,j) = evaluated_value;
-        fprintf(['number of components  ' num2str(i) ' nonlinear ' num2str(j) ' complete \n'])
-
+        [evaluated_value,~,~,~,~] =  ica_train_optimize_subtract_ResponseTiming(data,stimChans,fs,numComponentsSearch,scale_factor,meanSub,orderPoly,plotIt,channelInt,nonlinear);
+        evaluated_value_mat(j) = evaluated_value
+        fprintf(['number of components  ' num2str(numComponentsSearch) ' nonlinear ' num2str(j) ' complete \n'])
     end
+    matrix_vals(i,:) = evaluated_value_mat;
+
 end
 
 [minMatrix,I] = min(matrix_vals(:));

@@ -18,7 +18,6 @@ for i=1:2:(length(varargin)-1)
         case 'fs'
             fs = varargin{i+1};
     end
-    
 end
 
 
@@ -47,9 +46,8 @@ for ind  = 1:numTrials
     art = logical(art);
     
     % huber loss for region outside of artifact
-    sigma = 1e-4;
+    sigma = 1;
     huberOutsideArtifact = huber_loss(raw_sig(~art,:,ind),processedSig(~art,:,ind),sigma);
-    
     
     % huber loss for region inside artifact
     sigma = 1;
@@ -59,7 +57,6 @@ for ind  = 1:numTrials
     huberInside_mat(:,ind) = huberInsideArtifact;
     huberOutside_mat(:,ind) = huberOutsideArtifact;
     
-    
 end
 
 if plotIt
@@ -67,19 +64,19 @@ if plotIt
     hold on
     trial_inds = [1:numTrials];
     for ind = trial_inds
-        scatter(repmat(ind,[size(huberOutsideArtifact,1),1]),huberOutsideArtifact(:,ind))
+        scatter(repmat(ind,[size(huberOutside_mat,1),1]),huberOutside_mat(:,ind))
     end
     
     figure
     hold on
     trial_inds = [1:numTrials];
     for ind = trial_inds
-        scatter(repmat(ind,[size(huberInsideArtifact,1),1]),huberInsideArtifact(:,ind))
+        scatter(repmat(ind,[size(huberInside_mat,1),1]),huberInside_mat(:,ind))
     end
 end
 %
 weight_inside = 1;
-weight_outside = 1/5*weight_inside;
+weight_outside = 1*weight_inside;
 
 evaluated_value = weight_outside*mean(mean(huberOutsideArtifact))+weight_inside*mean(mean(huberInsideArtifact));
 

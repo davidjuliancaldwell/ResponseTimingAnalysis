@@ -129,15 +129,29 @@ for i = 1:numTrials
         sig_epoch = scale_factor.*trial_dataIntTime.*repmat(ratio,length_signal,1);
     end
     
-    [icasig_temp,mixing_mat_temp,sep_mat_temp] = fastica(sig_epoch','g',nonlinear,'approach',...
-        'defl','stabilization','on','numOfIC',numComponentsSearch,'verbose','off');
+    %[icasig_temp,mixing_mat_temp,sep_mat_temp] = fastica(sig_epoch','g',nonlinear,'approach',...
+    %    'defl','stabilization','on','numOfIC',numComponentsSearch,'verbose','off');
     %[icasig_temp,mixing_mat_temp,sep_mat_temp] = fastica(sig_epoch','g','gauss','approach','symm','numOfIC',numComponentsSearch);
-    
+    [icasig_temp,mixing_mat_temp,sep_mat_temp] = fastica(sig_epoch','g',nonlinear,'approach',...
+        'defl','stabilization','on','numOfIC',numComponentsSearch,'verbose','off','epsilon',0.00001,'maxNumIterations',5000,'maxFinetune',300);    
     i_icasigS{i} = icasig_temp;
     i_mixing_matS{i} = mixing_mat_temp;
     i_sep_matS{i} = sep_mat_temp;
     %fprintf(['iteration ' num2str(i) '\n'])
 end
+
+% 'epsilon'             (number) Stopping criterion. Default is 0.0001.
+%
+% 'maxNumIterations'    (integer) Maximum number of iterations.
+%                       Default is 1000.
+%
+% 'maxFinetune'         (integer) Maximum number of iterations in 
+%                       fine-tuning. Default 100.
+%
+% 'sampleSize'          (number) [0 - 1] Percentage of samples used in
+%                       one iteration. Samples are chosen in random.
+%                       Default is 1 (all samples).
+%
 
 
 %% set ICA components that are like the artifact to zero (they occur near a certain time and have prominence)
@@ -156,8 +170,8 @@ for i = 1:numTrials
     for j = 1:numICs
         
         % have to tune this
-        [pk_temp_pos,locs_temp_pos] = findpeaks(zscore(i_icasigS{i}(j,:)),fs_data,'MinPeakProminence',7);
-        [pk_temp_neg,locs_temp_neg] = findpeaks(-1*zscore(i_icasigS{i}(j,:)),fs_data,'MinPeakProminence',7);
+        [pk_temp_pos,locs_temp_pos] = findpeaks(zscore(i_icasigS{i}(j,:)),fs_data,'MinPeakProminence',5);
+        [pk_temp_neg,locs_temp_neg] = findpeaks(-1*zscore(i_icasigS{i}(j,:)),fs_data,'MinPeakProminence',5);
         %
         
        % findpeaks(zscore(i_icasigS{i}(j,:)),fs_data,'MinPeakProminence',3)
@@ -168,8 +182,8 @@ for i = 1:numTrials
         total_peaks = length(pk_temp_pos)+length(pk_temp_neg);
         
         [f,P1] = spectralAnalysisComp(fs_data,i_icasigS{i}(j,:));
-        [maxi,ind] = max(P1(f>150 & f< 1000));
-        f_temp= f(f>150 & f<1000);
+        [maxi,ind] = max(P1(f>190 & f< 1000));
+        f_temp= f(f>190 & f<1000);
         rounded_f = round(f_temp(ind),-1);
         
         % take diff of sig to find onset of stim train
@@ -196,7 +210,7 @@ for i = 1:numTrials
         zSig = zscore(i_icasigS{i}(j,:));
         zscore_notArt = abs(zSig(~art));
         
-        if var(zscore_notArt)>0.1
+        if var(zscore_notArt)>0.5
             noGoodSignal = false;
         else
             noGoodSignal = true;
