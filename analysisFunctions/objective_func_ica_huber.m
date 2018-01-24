@@ -80,5 +80,30 @@ weight_outside = 1*weight_inside;
 
 evaluated_value = weight_outside*mean(mean(huberOutsideArtifact))+weight_inside*mean(mean(huberInsideArtifact));
 
+% power_vals = zeros;
+% [f,p1] = spectralAnalysisComp(fs,processedSig);
+% figure
+% plot(f,log(p1))
+% 
+% [f,p1] = spectralAnalysisComp(fs,raw_sig);
+% figure
+% plot(f,log(p1))
+% 
+% 
+% [f,p1] = spectralAnalysisComp(fs,raw_sig(~art,:,ind));
+% figure
+% plot(f,log(p1))
+% 
+% [f,p1] = spectralAnalysisComp(fs,processedSig(~art,:,ind));
+% figure
+% plot(f,log(p1))
+% 
+% [f,p1] = spectralAnalysisComp(fs,raw_sig(~art,:,ind));
+% figure
+% plot(f,log(p1))
+% 
+% [f,p1] = spectralAnalysisComp(fs,processedSig(~art,:,ind));
+% figure
+% plot(f,log(p1))
 
 end

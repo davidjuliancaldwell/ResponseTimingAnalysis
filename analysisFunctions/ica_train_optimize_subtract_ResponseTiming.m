@@ -277,7 +277,7 @@ for i = 1:numTrials
     else
         % rescaled
         
-        subtracted_sig_ICA_temp = dataIntTime(:,:,i) - (combined_ica_recon./scale_factor)./repmat(ratio_mat(:,i)',length_signal,1);
+        subtracted_sig_ICA_temp = dataIntTime(:,:,i) - ((combined_ica_recon./scale_factor)./repmat(ratio_mat(:,i)',length_signal,1));
     end
     % add in bad channels back
     total_sig(:,goods) = subtracted_sig_ICA_temp;

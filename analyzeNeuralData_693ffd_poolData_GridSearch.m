@@ -1,6 +1,6 @@
 %% squeeze data
 %%
-close all; clearvars ; clc
+%close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
@@ -46,6 +46,13 @@ samps_post_stim = round(post_stim/1e3*fs_data);
 pre_stim = 1000;
 samps_pre_stim = round(pre_stim/1e3*fs_data);
 
+%% 1/22/2018 - template subtraction
+processedSig = templateSubtract(dataInt,fs_data,'plotIt',0);
+
+%% 1/22/2018 - linear interpolation
+
+processedSig = interpolate_artifact(dataInt,'fs',fs_data,'plotIt',0,'type','pchip');
+
 %% ica_optimize
 ica_optimize = 0;
 
@@ -65,7 +72,7 @@ if icaProcess
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
         
- meanSub = false;
+        meanSub = false;
         plotIt = false;
         numComponentsSearch = 64;
         scale_factor = 1000;
@@ -74,16 +81,16 @@ if icaProcess
         
         plotIt = true;
         %stimChans = [1 9 24 32];
-        stimChans = [1 9 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad 
+        stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
         
         outputsignal = zeros(size(dataInt));
         artifact = zeros(size(dataInt));
         best_numComponents_m = zeros(size(dataInt,3),1);
         best_nonLinear_m ={};
         
-        %for i = 1:size(dataInt,3)
-              i = 14;
-              trialInt = i;
+        for i = 1:size(dataInt,3)
+            %i = 3;
+            %trialInt = i;
             data_int_temp = dataInt(:,:,i);
             [best_numComponents,best_nonLinear,outputSig,recon_artifact] = optimize_ICA_ResponseTiming_gridSearch(data_int_temp,'fs',fs_data,'stimChans',stimChans);
             best_numComponents_m(i) = best_numComponents;
@@ -91,12 +98,9 @@ if icaProcess
             processedSig(:,:,i) = outputSig;
             artifact(:,:,i) = recon_artifact;
             fprintf(['iteration ' num2str(i) ' complete \n'])
-      %  end
+        end
         
         stimTime = zeros(size(processedSig,3));
-        
-        stimTime = zeros(size(processedSig,3));
-        
         
     elseif (condIntAns == -1)
         
@@ -132,29 +136,34 @@ chanIntList = [21 28 19 36 44 43 30];
 %% single trial
 chanIntList = [21 28 19 18 36 44 43 30];
 
-for ind = chanIntList
-    t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
-    
-    exampChan = squeeze(processedSig(:,ind,trialInt));
-    
-    figure
-    subplot(2,1,1)
-    plot(1e3*t_epoch,exampChan);
-    xlim([-200 1000])
-    ylim([-5e-4 5e-4])
-    title(['Processed Signal - Channel ' num2str(ind)])
-    clear exampChan
-    
-    
-    subplot(2,1,2)
-    exampChan = squeeze(dataInt(:,ind,trialInt));
-    plot(1e3*t_epoch,exampChan);
-    xlim([-200 1000])
-    ylim([-5e-4 5e-4])
-    title(['Raw Signal  - Channel ' num2str(ind)])
-    
-    
-    clear exampChan
+for trialInt = 1:size(processedSig,3)
+    for ind = chanIntList
+        t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
+        
+        exampChan = squeeze(processedSig(:,ind,trialInt));
+        
+        figure
+        ax1 = subplot(2,1,1);
+       plot(1e3*t_epoch,exampChan);
+        xlim([-200 1000])
+        %ylim([-5e-4 5e-4])
+        title(['Processed Signal - Channel ' num2str(ind)])
+        clear exampChan
+        
+        
+         ax2 =subplot(2,1,2);
+        exampChan = squeeze(dataInt(:,ind,trialInt));
+       plot(1e3*t_epoch,exampChan);
+        xlim([-200 1000])
+        %ylim([-5e-4 5e-4])
+        xlabel('time (ms)')
+        ylabel('Voltage (\muV)')
+        title(['Raw Signal  - Channel ' num2str(ind)])
+        linkaxes([ax1,ax2],'xy')
+        
+        
+        clear exampChan
+    end
 end
 %%
 for ind = chanIntList
@@ -162,34 +171,38 @@ for ind = chanIntList
     exampChan = mean(squeeze(processedSig(:,ind,:)),2);
     
     figure
-    subplot(2,1,1)
-    plot(1e3*t_epoch,exampChan);
+    ax1 = subplot(2,1,1);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
     xlim([-200 1000])
     ylim([-5e-5 5e-5])
+    
     title(['Processed Signal - Channel ' num2str(ind)])
     clear exampChan
     
     
-    subplot(2,1,2)
+    ax2 = subplot(2,1,2);
     exampChan = mean(squeeze(dataInt(:,ind,:)),2);
-    plot(1e3*t_epoch,exampChan);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
     xlim([-200 1000])
     ylim([-5e-5 5e-5])
+    xlabel('time (ms)')
+    ylabel('Voltage (\muV)')
     title(['Raw Signal Average - Channel ' num2str(ind)])
     
+    linkaxes([ax1,ax2],'xy')
     
     clear exampChan
 end
 
 % 9-28-2017 - save intermediate data for plotting response map
 
-    %%
+%%
 sig = processedSig;
 avgResponse = mean(sig,3);
 
 stimChans = [20 29];
 
-smallMultiples_responseTiming(avgResponse,t,'type1',stimChans,'type2',0,'average',1)
+smallMultiples_responseTiming(avgResponse,t_epoch,'type1',stimChans,'type2',0,'average',1)
 
 %save([sid '_block' num2str(block) '_postICAProcessData'],processsedSig,'-v7.3')
 
@@ -197,19 +210,19 @@ smallMultiples_responseTiming(avgResponse,t,'type1',stimChans,'type2',0,'average
 
 % load subject data, need sid still
 %load([sid,'_compareResponse_block_',block,'.mat'])
-% 
+%
 % for i = 1:length(uniqueCond)
 %     % 12-10-2016
 %     respLo = 0.150;
 %     respHi = 1;
-%     
-%     
+%
+%
 %     trim = buttonLocs{i};
 %     trim = trim(trim>respLo & trim<respHi);
 %     zTrim = zscore(trim);
 %     buttonLocsThresh{i} = 1e3.*trim(abs(zTrim)<3);
 %     %buttonLocsThresh{i} = 1e3.*trim;
-%     
+%
 % end
 
 %%
@@ -281,21 +294,21 @@ chanInt = 27;
 %t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
 
 response = buttonLocs{condInt}/(2*fs_data);
- cmap=flipud(cbrewer('div', 'RdBu', 13));
- colormap(cmap)
- 
- powerout_norm = normalize_spectrogram(powerout,t_morlet);
+cmap=flipud(cbrewer('div', 'RdBu', 13));
+colormap(cmap)
+
+powerout_norm = normalize_spectrogram(powerout,t_morlet);
 
 
 for i = 1:size(powerout,4)
- 
+    
     totalFig = figure;
     totalFig.Units = 'inches';
     totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
     subplot(3,1,1);
     imagesc(1e3*t_morlet,f_morlet,powerout_norm(:,:,chanInt,i));
-     cmap=flipud(cbrewer('div', 'RdBu', 13));
- colormap(cmap)
+    cmap=flipud(cbrewer('div', 'RdBu', 13));
+    colormap(cmap)
     axis xy;
     xlabel('time (ms)');
     ylabel('frequency (Hz)');

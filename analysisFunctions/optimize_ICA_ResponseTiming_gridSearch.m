@@ -9,8 +9,8 @@ channelInt = 45;
 
 % lower bound for num components factor
 lb = [3];
-%ub = [size(data,2)-numel(stimChans)];
-ub = 20;
+ub = [size(data,2)-numel(stimChans)];
+%ub = 20;
 % starting scale factor
 test_points = [lb:1:ub];
 nonlinears_cell = {'pow3','tanh','gauss','skew'};
