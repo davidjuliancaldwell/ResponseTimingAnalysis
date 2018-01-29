@@ -1,5 +1,7 @@
 %% squeeze data
 %%
+numCores = feature('numcores');
+parpool(numCores);
 %close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
@@ -8,7 +10,7 @@ sid = SIDS{4};
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 
 load(fullfile([sid 'pooledData.mat']));
-%%
+%
 block = [1,2];
 buttonLocsSamps_cell_ind = {};
 buttonlocsSamps_cell = {};
@@ -29,99 +31,97 @@ for i = 1:length(buttonLocsSamps)
     data{i} = cat(3,[epochedCortEco_cell{1}{i}], [epochedCortEco_cell{2}{i}]);
 end
 
-%%
+%
 clearvars epochedCortEco_cell buttonLocsSamps_cell_ind
 t_epoch = t_epoch_good;
 
-%% get data of interest
-condInt = 6;
-condIntAns = uniqueCond(condInt);
-dataInt = data{condInt};
-buttonLocsInt = buttonLocs{condInt};
-chanInt = 10;
+% get data of interest
+condInt_vec = [1 4 5 6 7];
+processedSig_cell = {};
+dataInt_cell = {};
 
-% additional parameters
-post_stim = 2000;
-samps_post_stim = round(post_stim/1e3*fs_data);
 
-pre_stim = 1000;
-samps_pre_stim = round(pre_stim/1e3*fs_data);
-
-%% ica_optimize
-ica_optimize = 0;
-
-if ica_optimize
+for condInt = condInt_vec
     
-    stimChans = [9 17 50 58];
-    x0 = 50;
-    [x history searchdir] = optimize_ICA(data,'fs',eco_fs,'meansub',0,'orderpoly',1,'stimChans',stimChans,'x0',x0)
+    %condInt = 6;
+    condIntAns = uniqueCond(condInt);
+    dataInt = data{condInt};
+    buttonLocsInt = buttonLocs{condInt};
+    chanInt = 10;
     
-end
-
-%%
-% Process the signal with ICA
-
-icaProcess = 1;
-if icaProcess
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if (condIntAns == 2 || condIntAns == 3|| condIntAns == 4 || condIntAns == 5)
-        
-        
-        meanSub = false;
-        plotIt = false;
-        numComponentsSearch = 64;
-        scale_factor = 1000;
-        orderPoly = 3;
-        meanSub = 0;
-        
-        plotIt = true;
-        %stimChans = [1 9 24 32];
-        stimChans = [1 9 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels
-        
-        outputsignal = zeros(size(dataInt));
-        artifact = zeros(size(dataInt));
-        best_numComponents_m = zeros(size(dataInt,3),1);
-        best_nonLinear_m ={};
-        
-        for i = 1:size(dataInt,3)
-            %   i = 15;
-            %   trialInt = i;
-            data_int_temp = dataInt(:,:,i);
-            [best_numComponents,best_nonLinear,outputSig,recon_artifact] = optimize_ICA_ResponseTiming_gridSearch(data_int_temp,'fs',fs_data,'stimChans',stimChans);
-            best_numComponents_m(i) = best_numComponents;
-            best_nonLinear_m{i} = best_nonLinear;
-            processedSig(:,:,i) = outputSig;
-            artifact(:,:,i) = recon_artifact;
-            fprintf(['iteration ' num2str(i) ' complete \n'])
-        end
-        
-        stimTime = zeros(size(processedSig,3));
-        
-    elseif (condIntAns == -1)
-        
-        meanSub = 1;
-        %orderPoly = 6;
-        orderPoly = 3; %10-12-2017 - djc change
-        if meanSub == 1
-            for i = 1:size(dataInt,2)
-                for j = 1:size(dataInt,3)
-                    data_int_temp = squeeze(dataInt(:,i,j));
-                    [p,s,mu] = polyfit((1:numel(data_int_temp))',data_int_temp,orderPoly);
-                    f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
-                    
-                    % subtract poly fit
-                    processedSig(:,i,j) = data_int_temp - f_y;
-                end
+    % additional parameters
+    post_stim = 2000;
+    samps_post_stim = round(post_stim/1e3*fs_data);
+    
+    pre_stim = 1000;
+    samps_pre_stim = round(pre_stim/1e3*fs_data);
+    %
+    % Process the signal with ICA
+    
+    icaProcess = 1;
+    if icaProcess
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        if (condIntAns == 2 || condIntAns == 3|| condIntAns == 4 || condIntAns == 5)
+            
+            
+            meanSub = false;
+            plotIt = false;
+            numComponentsSearch = 64;
+            scale_factor = 1000;
+            orderPoly = 3;
+            meanSub = 0;
+            
+            plotIt = true;
+            %stimChans = [1 9 24 32];
+            stimChans = [1 9 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels
+            
+            outputsignal = zeros(size(dataInt));
+            artifact = zeros(size(dataInt));
+            best_numComponents_m = zeros(size(dataInt,3),1);
+            best_nonLinear_m ={};
+            
+            for i = 1:size(dataInt,3)
+                %   i = 15;
+                %   trialInt = i;
+                data_int_temp = dataInt(:,:,i);
+                [best_numComponents,best_nonLinear,outputSig,recon_artifact] = optimize_ICA_ResponseTiming_gridSearch(data_int_temp,'fs',fs_data,'stimChans',stimChans);
+                best_numComponents_m(i) = best_numComponents;
+                best_nonLinear_m{i} = best_nonLinear;
+                processedSig(:,:,i) = outputSig;
+                artifact(:,:,i) = recon_artifact;
+                fprintf(['iteration ' num2str(i) ' complete \n'])
             end
-        else
-            processedSig = dataInt;
+            
+            stimTime = zeros(size(processedSig,3));
+            
+        elseif (condIntAns == -1)
+            
+            meanSub = 1;
+            %orderPoly = 6;
+            orderPoly = 3; %10-12-2017 - djc change
+            if meanSub == 1
+                for i = 1:size(dataInt,2)
+                    for j = 1:size(dataInt,3)
+                        data_int_temp = squeeze(dataInt(:,i,j));
+                        [p,s,mu] = polyfit((1:numel(data_int_temp))',data_int_temp,orderPoly);
+                        f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
+                        
+                        % subtract poly fit
+                        processedSig(:,i,j) = data_int_temp - f_y;
+                    end
+                end
+            else
+                processedSig = dataInt;
+            end
+            
+            %stimTime = 1e3*tactorLocsVec; %
+            stimTime = zeros(size(processedSig,3)); % it is centered around zero now
         end
         
-        %stimTime = 1e3*tactorLocsVec; %
-        stimTime = zeros(size(processedSig,3)); % it is centered around zero now
-    end
-    
-end%
+    end%
+        processedSig_cell{condInt} = processedSig;
+        dataInt_cell{condInt} = dataInt;
+end
 %% single trial
 chanIntList = [2 10 36 37 51 42];
 for ind = chanIntList

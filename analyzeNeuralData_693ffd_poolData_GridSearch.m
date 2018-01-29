@@ -1,13 +1,16 @@
 %% squeeze data
 %%
-close all; clearvars ; clc
+numCores = feature('numcores');
+parpool(numCores);
+
+%close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
 sid = SIDS{3};
 
 load(fullfile([sid 'pooledData.mat']));
-%%
+%
 block = [1,2];
 buttonLocsSamps_cell_ind = {};
 buttonlocsSamps_cell = {};
@@ -32,100 +35,96 @@ end
 clearvars epochedCortEco_cell buttonLocsSamps_cell_ind
 t_epoch = t_epoch_good;
 
-%% get data of interest
-condInt = 6;
-condIntAns = uniqueCond(condInt);
-dataInt = data{condInt};
-buttonLocsInt = buttonLocs{condInt};
-chanInt = 17;
+% get data of interest
+cond_int_vec = [1 4 5 6 7];
+processedSig_cell = {};
+dataInt_cell = {};
 
-% additional parameters
-post_stim = 2000;
-samps_post_stim = round(post_stim/1e3*fs_data);
-
-pre_stim = 1000;
-samps_pre_stim = round(pre_stim/1e3*fs_data);
-
-%% ica_optimize
-ica_optimize = 0;
-
-if ica_optimize
+for condInt = cond_int_vec
+    %condInt = 6;
+    condIntAns = uniqueCond(condInt);
+    dataInt = data{condInt};
+    buttonLocsInt = buttonLocs{condInt};
+    chanInt = 17;
     
-    stimChans = [20 29];
-    x0 = 50;
-    [x history searchdir] = optimize_ICA(dataInt,'fs',eco_fs,'meansub',0,'orderpoly',1,'stimChans',stimChans,'x0',x0)
+    % additional parameters
+    post_stim = 2000;
+    samps_post_stim = round(post_stim/1e3*fs_data);
     
-end
-
-%%
-% Process the signal with ICA
-
-icaProcess = 1;
-if icaProcess
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
-        
- meanSub = false;
-        plotIt = false;
-        numComponentsSearch = 64;
-        scale_factor = 1000;
-        orderPoly = 3;
-        meanSub = 0;
-        
-        plotIt = true;
-        %stimChans = [1 9 24 32];
-        stimChans = [1 9 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad 
-        
-        outputsignal = zeros(size(dataInt));
-        artifact = zeros(size(dataInt));
-        best_numComponents_m = zeros(size(dataInt,3),1);
-        best_nonLinear_m ={};
-        
-        %for i = 1:size(dataInt,3)
-              i = 14;
-              trialInt = i;
-            data_int_temp = dataInt(:,:,i);
-            [best_numComponents,best_nonLinear,outputSig,recon_artifact] = optimize_ICA_ResponseTiming_gridSearch(data_int_temp,'fs',fs_data,'stimChans',stimChans);
-            best_numComponents_m(i) = best_numComponents;
-            best_nonLinear_m{i} = best_nonLinear;
-            processedSig(:,:,i) = outputSig;
-            artifact(:,:,i) = recon_artifact;
-            fprintf(['iteration ' num2str(i) ' complete \n'])
-      %  end
-        
-        stimTime = zeros(size(processedSig,3));
-        
-        stimTime = zeros(size(processedSig,3));
-        
-        
-    elseif (condIntAns == -1)
-        
-        meanSub = 0;
-        %orderPoly = 6;
-        orderPoly = 3; %10-12-2017 - djc change
-        if meanSub == 1
-            for i = 1:size(dataInt,2)
-                for j = 1:size(dataInt,3)
-                    data_int_temp = squeeze(dataInt(:,i,j));
-                    [p,s,mu] = polyfit((1:numel(data_int_temp))',data_int_temp,orderPoly);
-                    f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
-                    
-                    % subtract poly fit
-                    processedSig(:,i,j) = data_int_temp - f_y;
+    pre_stim = 1000;
+    samps_pre_stim = round(pre_stim/1e3*fs_data);
+    
+    %
+    % Process the signal with ICA
+    
+    icaProcess = 1;
+    if icaProcess
+        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
+            
+            meanSub = false;
+            plotIt = false;
+            numComponentsSearch = 64;
+            scale_factor = 1000;
+            orderPoly = 3;
+            meanSub = 0;
+            
+            plotIt = true;
+            %stimChans = [1 9 24 32];
+            stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+            
+            outputsignal = zeros(size(dataInt));
+            artifact = zeros(size(dataInt));
+            best_numComponents_m = zeros(size(dataInt,3),1);
+            best_nonLinear_m ={};
+            
+            for i = 1:size(dataInt,3)
+                % i = 14;
+                %  trialInt = i;
+                data_int_temp = dataInt(:,:,i);
+                [best_numComponents,best_nonLinear,outputSig,recon_artifact] = optimize_ICA_ResponseTiming_gridSearch(data_int_temp,'fs',fs_data,'stimChans',stimChans);
+                best_numComponents_m(i) = best_numComponents;
+                best_nonLinear_m{i} = best_nonLinear;
+                processedSig(:,:,i) = outputSig;
+                artifact(:,:,i) = recon_artifact;
+                fprintf(['iteration ' num2str(i) ' complete \n'])
+            end
+            
+            stimTime = zeros(size(processedSig,3));
+            
+            stimTime = zeros(size(processedSig,3));
+            
+            
+        elseif (condIntAns == -1)
+            
+            meanSub = 0;
+            %orderPoly = 6;
+            orderPoly = 3; %10-12-2017 - djc change
+            if meanSub == 1
+                for i = 1:size(dataInt,2)
+                    for j = 1:size(dataInt,3)
+                        data_int_temp = squeeze(dataInt(:,i,j));
+                        [p,s,mu] = polyfit((1:numel(data_int_temp))',data_int_temp,orderPoly);
+                        f_y = polyval(p,(1:numel(data_int_temp))',[],mu);
+                        
+                        % subtract poly fit
+                        processedSig(:,i,j) = data_int_temp - f_y;
+                        
+                    end
                     
                 end
-                
+            else
+                processedSig = dataInt;
             end
-        else
-            processedSig = dataInt;
+            
+            %stimTime = 1e3*tactorLocsVec; %
+            stimTime = zeros(size(processedSig,3)); % it is centered around zero now
+            t = t_epoch;
         end
-        
-        %stimTime = 1e3*tactorLocsVec; %
-        stimTime = zeros(size(processedSig,3)); % it is centered around zero now
-        t = t_epoch;
+        processedSig_cell{condInt} = processedSig;
+        dataInt_cell{condInt} = dataInt;
     end
 end
-
 chanIntList = [21 28 19 36 44 43 30];
 
 % evaluate goodness of fit
@@ -157,6 +156,9 @@ for ind = chanIntList
     clear exampChan
 end
 %%
+for condInt = cond_int_vec
+    processedSig = processedSig_cell{condInt};
+    dataInt = dataInt_cell{condInt};
 for ind = chanIntList
     
     exampChan = mean(squeeze(processedSig(:,ind,:)),2);
@@ -180,10 +182,10 @@ for ind = chanIntList
     
     clear exampChan
 end
-
+end
 % 9-28-2017 - save intermediate data for plotting response map
 
-    %%
+%%
 sig = processedSig;
 avgResponse = mean(sig,3);
 
@@ -197,19 +199,19 @@ smallMultiples_responseTiming(avgResponse,t,'type1',stimChans,'type2',0,'average
 
 % load subject data, need sid still
 %load([sid,'_compareResponse_block_',block,'.mat'])
-% 
+%
 % for i = 1:length(uniqueCond)
 %     % 12-10-2016
 %     respLo = 0.150;
 %     respHi = 1;
-%     
-%     
+%
+%
 %     trim = buttonLocs{i};
 %     trim = trim(trim>respLo & trim<respHi);
 %     zTrim = zscore(trim);
 %     buttonLocsThresh{i} = 1e3.*trim(abs(zTrim)<3);
 %     %buttonLocsThresh{i} = 1e3.*trim;
-%     
+%
 % end
 
 %%
@@ -281,21 +283,21 @@ chanInt = 27;
 %t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
 
 response = buttonLocs{condInt}/(2*fs_data);
- cmap=flipud(cbrewer('div', 'RdBu', 13));
- colormap(cmap)
- 
- powerout_norm = normalize_spectrogram(powerout,t_morlet);
+cmap=flipud(cbrewer('div', 'RdBu', 13));
+colormap(cmap)
+
+powerout_norm = normalize_spectrogram(powerout,t_morlet);
 
 
 for i = 1:size(powerout,4)
- 
+    
     totalFig = figure;
     totalFig.Units = 'inches';
     totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
     subplot(3,1,1);
     imagesc(1e3*t_morlet,f_morlet,powerout_norm(:,:,chanInt,i));
-     cmap=flipud(cbrewer('div', 'RdBu', 13));
- colormap(cmap)
+    cmap=flipud(cbrewer('div', 'RdBu', 13));
+    colormap(cmap)
     axis xy;
     xlabel('time (ms)');
     ylabel('frequency (Hz)');
