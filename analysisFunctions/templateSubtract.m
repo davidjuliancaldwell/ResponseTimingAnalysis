@@ -75,7 +75,9 @@ for trial = 1:size(raw_sig,3)
         avg_signal = zeros((end_inds(1)-start_inds(1)+1),length(start_inds));
         for sts = 1:length(start_inds)
             win = start_inds(sts):start_inds(sts)+default_time_average-1;
-            avg_signal(:,sts) = raw_sig_temp(win);
+           % avg_signal(:,sts) = raw_sig_temp(win);
+            avg_signal(:,sts) = raw_sig_temp(win) - mean(raw_sig_temp(start_inds(sts):start_inds(sts)+presamps-5));% take off pre period
+
         end
         
         % find average stimulus
@@ -86,7 +88,7 @@ for trial = 1:size(raw_sig,3)
             raw_sig_temp(win) = raw_sig_temp(win) - avg_signal_mean;
         end
         
-        if plotIt
+        if plotIt && (trial == 10 || trial == 1000)
             figure
             plot(raw_sig_temp,'linewidth',2)
             hold on
@@ -97,7 +99,7 @@ for trial = 1:size(raw_sig,3)
         end
         
         processedSig(:,chan,trial) = raw_sig_temp;
-        
+        template{chan}{trial} = avg_signal;
     end
     
 end

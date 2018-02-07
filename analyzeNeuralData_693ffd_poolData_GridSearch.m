@@ -1,13 +1,13 @@
 %% squeeze data
 %%
-%close all; clearvars ; clc
+close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
 sid = SIDS{3};
 
 load(fullfile([sid 'pooledData.mat']));
-%%
+%
 block = [1,2];
 buttonLocsSamps_cell_ind = {};
 buttonlocsSamps_cell = {};
@@ -27,13 +27,13 @@ end
 for i = 1:length(buttonLocsSamps)
     data{i} = cat(3,[epochedCortEco_cell{1}{i}(:,1:53,:)], [epochedCortEco_cell{2}{i}(:,1:53,:)]);
 end
-
+%%
 
 clearvars epochedCortEco_cell buttonLocsSamps_cell_ind
 t_epoch = t_epoch_good;
 
-%% get data of interest
-condInt = 6;
+% get data of interest
+condInt = 7;
 condIntAns = uniqueCond(condInt);
 dataInt = data{condInt};
 buttonLocsInt = buttonLocs{condInt};
@@ -47,11 +47,360 @@ pre_stim = 1000;
 samps_pre_stim = round(pre_stim/1e3*fs_data);
 
 %% 1/22/2018 - template subtraction
-processedSig = templateSubtract(dataInt,fs_data,'plotIt',0);
+pre = 0.9; % started with 0.7
+post = 1.8; % started with 0.7, then 1.1, then 1.5, then 1.8
+[processedSig,template] = templateSubtract(dataInt,fs_data,'plotIt',0,'pre',pre,'post',post);
+%processedSig = templateSubtract(dataInt,fs_data,'plotIt',0);
+%%
+figure
+hold on
+
+chanInt = 2;
+for i = 1:size(template{1},2)
+    plot(template{chanInt}{i});
+end
+%%
+figure
+hold on
+for j = 1:size(template,2)
+    subplot(8,8,j)
+    hold on
+    for i = 1:size(template{1},2)
+        timeVec = [0:size(template{j}{i},1)-1];
+
+        plotBTLError(timeVec,template{j}{i},'CI');
+    end
+    title(['Channel ' num2str(j)])
+end
+
+
 
 %% 1/22/2018 - linear interpolation
 
 processedSig = interpolate_artifact(dataInt,'fs',fs_data,'plotIt',0,'type','pchip');
+
+%% 1-29-2018 - template dictionary method 
+stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+pre = 1; % started with 0.7
+post = 2; % started with 0.7, then 1.1, then 1.5, then 1.8
+[processedSig,templateDict_cell,template,start_inds,end_inds] = templateSubtract_dictionary(dataInt,'fs',fs_data,...
+    'plotIt',0,'pre',pre,'post',post,'stimChans',stimChans);
+
+%
+bads = [];
+badTotal = [stimChans; bads];
+
+% total channels
+numChans = 53;
+% make logical good channels matrix to index
+goods = zeros(numChans,1);
+
+channelsOfInt = 1:numChans;
+
+goods(channelsOfInt) = 1;
+% set the goods matrix to be zero where bad channels are
+goods(badTotal) = 0;
+% make it logical
+goods = logical(goods);
+
+%raw_sig = raw_sig(:,goods,:);
+
+[~,goodVec] = find(goods'>0);
+
+chanIntList = [12 21 28 19 18 36 44 43 30 33 41 34];
+
+for ind = chanIntList
+    
+    exampChan = mean(squeeze(processedSig(:,ind,:)),2);
+    
+    figure
+    ax1 = subplot(2,1,1);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
+    xlim([-200 1000])
+    ylim([-5e-5 5e-5])
+    
+    title(['Processed Signal - Channel ' num2str(ind)])
+    clear exampChan
+    
+    
+    ax2 = subplot(2,1,2);
+    exampChan = mean(squeeze(dataInt(:,ind,:)),2);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
+    xlim([-200 1000])
+    ylim([-5e-5 5e-5])
+    xlabel('time (ms)')
+    ylabel('Voltage (\muV)')
+    title(['Raw Signal Average - Channel ' num2str(ind)])
+    
+    linkaxes([ax1,ax2],'xy')
+    
+    clear exampChan
+end
+%%=
+
+figure
+hold on
+for j = goodVec
+    subplot(8,8,j)
+    hold on
+    for i = 1:size(templateDict_cell{j},2)
+        timeVec = [0:size(templateDict_cell{j},1)-1];
+
+        %plotBTLError(timeVec,templateDict_cell{j}(:,i),'CI');
+        plot(timeVec,templateDict_cell{j}(:,i),'linewidth',2);
+    end
+    title(['Channel ' num2str(j)])
+end
+
+%
+sig = processedSig;
+avgResponse = mean(sig,3);
+
+stimChans = [20 29];
+
+smallMultiples_responseTiming(avgResponse,t_epoch,'type1',stimChans,'type2',0,'average',1)
+
+% plot the average dictionary templates 
+figure
+for j = goodVec
+    subplot(8,8,j)
+    hold on
+    for i = 1:size(template{j},2)
+        timeVec = [0:size(template{j}{:,i},1)-1];
+
+        plotBTLError(timeVec,template{j}{:,i},'CI',rand(1,3)');
+        %plot(timeVec,templateDict_cell{j}(:,i),'linewidth',2);
+    end
+    title(['Channel ' num2str(j)])
+end
+
+%% - template trial method 
+stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+pre = 1; % started with 0.7, then 0.9, adjusted the window, move it to 0.4
+post = 2; % started with 0.7, then 1.1, then 1.5, then 1.8
+[processedSig_trial,templateDict_cell_trial,template_trial,start_inds,end_inds] = templateSubtract_trial(dataInt,'fs',fs_data,...
+    'plotIt',0,'pre',pre,'post',post,'stimChans',stimChans);
+
+%
+bads = [];
+badTotal = [stimChans; bads];
+
+% total channels
+numChans = 53;
+% make logical good channels matrix to index
+goods = zeros(numChans,1);
+
+channelsOfInt = 1:numChans;
+
+goods(channelsOfInt) = 1;
+% set the goods matrix to be zero where bad channels are
+goods(badTotal) = 0;
+% make it logical
+goods = logical(goods);
+
+%raw_sig = raw_sig(:,goods,:);
+
+[~,goodVec] = find(goods'>0);
+
+%
+chanIntList = [12 21 28 19 18 36 44 43 30 33 41 34];
+
+for ind = chanIntList
+    
+    exampChan = mean(squeeze(processedSig_trial(:,ind,:)),2);
+    
+    figure
+    ax1 = subplot(2,1,1);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
+    xlim([-200 1000])
+    ylim([-5e-5 5e-5])
+    
+    title(['Processed Signal - Channel ' num2str(ind)])
+    clear exampChan
+    
+    
+    ax2 = subplot(2,1,2);
+    exampChan = mean(squeeze(dataInt(:,ind,:)),2);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
+    xlim([-200 1000])
+    ylim([-5e-5 5e-5])
+    xlabel('time (ms)')
+    ylabel('Voltage (\muV)')
+    title(['Raw Signal Average - Channel ' num2str(ind)])
+    
+    linkaxes([ax1,ax2],'xy')
+    
+    clear exampChan
+end
+%
+sig = processedSig_trial;
+avgResponse = mean(sig,3);
+
+stimChans = [20 29];
+
+smallMultiples_responseTiming(avgResponse,t_epoch,'type1',stimChans,'type2',0,'average',1)
+
+% plot the average dictionary templates 
+figure
+for j = goodVec
+    subplot(8,8,j)
+    hold on
+    for i = 1:size(template_trial{j},2)
+        timeVec = [0:size(template_trial{j}{:,i},1)-1];
+
+        plotBTLError(timeVec,template_trial{j}{:,i},'CI',rand(1,3)');
+        %plot(timeVec,templateDict_cell{j}(:,i),'linewidth',2);
+    end
+    title(['Channel ' num2str(j)])
+end
+
+%%
+stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+pre = 0.3; % started with 0.7, then 0.9, adjusted the window, move it to 0.4
+post = 0.8; % started with 0.7, then 1.1, then 1.5, then 1.8
+[processedSig_v2,templateDict_cell_v2,template_v2] = templateSubtract_dictionary_iterative(processedSig,'fs',fs_data,'plotIt',0,...
+    'pre',pre,'post',post,'stimChans',stimChans,'start_inds',start_inds,'end_inds',end_inds);
+
+
+%%
+chanIntList = [12 21 28 19 18 36 44 43 30 33 41 34];
+
+for ind = chanIntList
+    
+    exampChan = mean(squeeze(processedSig_v2(:,ind,:)),2);
+    
+    figure
+    ax1 = subplot(2,1,1);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
+    xlim([-200 1000])
+    ylim([-5e-5 5e-5])
+    
+    title(['Processed Signal - Channel ' num2str(ind)])
+    clear exampChan
+    
+    
+    ax2 = subplot(2,1,2);
+    exampChan = mean(squeeze(dataInt(:,ind,:)),2);
+    plot(1e3*t_epoch,exampChan,'linewidth',2);
+    xlim([-200 1000])
+    ylim([-5e-5 5e-5])
+    xlabel('time (ms)')
+    ylabel('Voltage (\muV)')
+    title(['Raw Signal Average - Channel ' num2str(ind)])
+    
+    linkaxes([ax1,ax2],'xy')
+    
+    clear exampChan
+end
+%%=
+
+
+
+figure
+hold on
+for j = goodVec
+    subplot(8,8,j)
+    hold on
+    for i = 1:size(templateDict_cell_v2{j},2)
+        timeVec = [0:size(templateDict_cell_v2{j},1)-1];
+
+        %plotBTLError(timeVec,templateDict_cell{j}(:,i),'CI');
+        plot(timeVec,templateDict_cell_v2{j}(:,i),'linewidth',2);
+    end
+    title(['Channel ' num2str(j)])
+end
+
+%
+sig = processedSig_v2;
+avgResponse = mean(sig,3);
+
+stimChans = [20 29];
+
+smallMultiples_responseTiming(avgResponse,t_epoch,'type1',stimChans,'type2',0,'average',1)
+
+% plot the average dictionary templates 
+figure
+for j = goodVec
+    subplot(8,8,j)
+    hold on
+    for i = 1:size(template_v2{j},2)
+        timeVec = [0:size(template_v2{j}{:,i},1)-1];
+
+        plotBTLError(timeVec,template_v2{j}{:,i},'CI',rand(1,3)');
+        %plot(timeVec,templateDict_cell{j}(:,i),'linewidth',2);
+    end
+    title(['Channel ' num2str(j)])
+end
+
+%save([sid '
+
+%% 1/22/2018 - single trial ICA
+stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+i = 15;
+trialInt = i;
+data_int_temp = dataInt(:,:,i);
+[processedSig,reconArtifact] = single_trial_ica(data_int_temp,'fs',fs_data,'plotIt',0,'stimChans',stimChans);
+%%
+chanIntList = [21 28 19 18 36 44 43 30 33 41];
+
+for ind = chanIntList
+    t_epoch = (-samps_pre_stim:samps_post_stim-1)/fs_data;
+    
+    exampChan = squeeze(processedSig(:,ind,trialInt));
+    
+    figure
+    ax1 = subplot(2,1,1);
+    plot(1e3*t_epoch,exampChan);
+    xlim([-200 1000])
+    %ylim([-5e-4 5e-4])
+    title(['Processed Signal - Channel ' num2str(ind)])
+    clear exampChan
+    
+    
+    ax2 =subplot(2,1,2);
+    exampChan = squeeze(dataInt(:,ind,trialInt));
+    plot(1e3*t_epoch,exampChan);
+    xlim([-200 1000])
+    %ylim([-5e-4 5e-4])
+    xlabel('time (ms)')
+    ylabel('Voltage (\muV)')
+    title(['Raw Signal  - Channel ' num2str(ind)])
+    linkaxes([ax1,ax2],'xy')
+    
+    
+    clear exampChan
+end
+%
+%%
+meanSub = false;
+plotIt = false;
+numComponentsSearch = 64;
+scale_factor = 1000;
+orderPoly = 3;
+meanSub = 0;
+
+plotIt = true;
+%stimChans = [1 9 24 32];
+stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+
+outputsignal = zeros(size(dataInt));
+artifact = zeros(size(dataInt));
+best_numComponents_m = zeros(size(dataInt,3),1);
+best_nonLinear_m ={};
+
+%for i = 1:size(dataInt,3)
+    %i = 3;
+    %trialInt = i;
+    data_int_temp = dataInt(:,:,i);
+    [best_numComponents,best_nonLinear,outputSig,recon_artifact] = optimize_ICA_ResponseTiming_gridSearch_singlePulse(data_int_temp,'fs',fs_data,'stimChans',stimChans);
+    best_numComponents_m(i) = best_numComponents;
+    best_nonLinear_m{i} = best_nonLinear;
+    processedSig(:,:,i) = outputSig;
+    artifact(:,:,i) = recon_artifact;
+    fprintf(['iteration ' num2str(i) ' complete \n'])
+%end
+
+stimTime = zeros(size(processedSig,3));
 
 %% ica_optimize
 ica_optimize = 0;
@@ -100,7 +449,7 @@ if icaProcess
             fprintf(['iteration ' num2str(i) ' complete \n'])
         end
         
-        stimTime = zeros(size(processedSig,3));
+        stimTime = zeros(size(processedSig,3),1);
         
     elseif (condIntAns == -1)
         
@@ -125,7 +474,7 @@ if icaProcess
         end
         
         %stimTime = 1e3*tactorLocsVec; %
-        stimTime = zeros(size(processedSig,3)); % it is centered around zero now
+        stimTime = zeros(size(processedSig,3),1); % it is centered around zero now
         t = t_epoch;
     end
 end
@@ -135,6 +484,7 @@ chanIntList = [21 28 19 36 44 43 30];
 % evaluate goodness of fit
 %% single trial
 chanIntList = [21 28 19 18 36 44 43 30];
+chanIntList = 12;
 
 for trialInt = 1:size(processedSig,3)
     for ind = chanIntList
@@ -144,18 +494,18 @@ for trialInt = 1:size(processedSig,3)
         
         figure
         ax1 = subplot(2,1,1);
-       plot(1e3*t_epoch,exampChan);
+        plot(1e3*t_epoch,exampChan);
         xlim([-200 1000])
-        %ylim([-5e-4 5e-4])
+        ylim([-5e-4 5e-4])
         title(['Processed Signal - Channel ' num2str(ind)])
         clear exampChan
         
         
-         ax2 =subplot(2,1,2);
+        ax2 =subplot(2,1,2);
         exampChan = squeeze(dataInt(:,ind,trialInt));
-       plot(1e3*t_epoch,exampChan);
+        plot(1e3*t_epoch,exampChan);
         xlim([-200 1000])
-        %ylim([-5e-4 5e-4])
+        ylim([-5e-4 5e-4])
         xlabel('time (ms)')
         ylabel('Voltage (\muV)')
         title(['Raw Signal  - Channel ' num2str(ind)])
