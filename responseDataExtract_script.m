@@ -1,37 +1,17 @@
 %% script to extract response timing data - 8-2-2016
-
-
-%%
 % clear workspace
 close all; clear all; clc
 
-%%  initialize output and meta dir
+%  initialize output and meta dir
 % set input output working directories - for David's PC right now
 Z_ConstantsStimResponse;
-
-% add path for scripts to work with data tanks
-addpath('./scripts')
-%addpath('./scripts/JennysConversionScripts')
-
-% subject directory, change as needed
-% SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-
-% data directory
-
-%PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
 
 % DJC Desktop
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 
-% DJC Laptop
-%DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
-
-% DJC MAC LAPTOP
-%DATA_DIR = 'C:\Users\David\Google Drive\GRIDLabDavidShared\ResponseTiming';
-
-sid = SIDS{2};
+sid = SIDS{1};
 %%
-if strcmp(sid,'acabb1') % first subject 
+if strcmp(sid,'acabb1') % first subject
     %% add the right path
     
     addpath(genpath('acabb1'))
@@ -98,9 +78,17 @@ if strcmp(sid,'2fd831') % third subject
     %% extract the neural data
     
     %extractNeuralData_2fd831
+end
+
+if strcmp(sid,'a1355e')
     
+    addpath(genpath('a1355e'))
+    %% extract the response times
     
+    extractStimResponse_a1355e
+    %% compare the response times
     
+    compareRespTimes_a1355e
 end
 
 

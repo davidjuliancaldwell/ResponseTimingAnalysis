@@ -81,6 +81,8 @@ processedSig = interpolate_artifact(dataInt,'fs',fs_data,'plotIt',0,'type','pchi
 
 %% 1-29-2018 - template dictionary method 
 stimChans = [1 9 20 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+stimChans = [20 29 57 58]; % 29 was bad too, 1 9 29 32 were the stim channels, 20 might also be bad
+
 pre = 1; % started with 0.7
 post = 2; % started with 0.7, then 1.1, then 1.5, then 1.8
 [processedSig,templateDict_cell,template,start_inds,end_inds] = templateSubtract_dictionary(dataInt,'fs',fs_data,...
@@ -158,7 +160,7 @@ avgResponse = mean(sig,3);
 
 stimChans = [20 29];
 
-smallMultiples_responseTiming(avgResponse,t_epoch,'type1',stimChans,'type2',0,'average',1)
+smallMultiples_responseTiming(avgResponse,t_epoch,'type1',stimChans,'type2',0,'average',1,'highlight_range',[0 800])
 
 % plot the average dictionary templates 
 figure
@@ -631,9 +633,10 @@ freq_range = [8 12];
 time_res = 0.050; % 50 ms bins
 
 [powerout,f_morlet,t_morlet,~] = waveletWrapper(processedSig,fs_data,time_res,stimChans);
-
+%
 t_morlet = linspace(-pre_stim,post_stim,length(t_morlet))/1e3;
-
+badChans = [1 9 20 24 29 32];
+powerout(:,:,badChans,:) = 0;
 
 %% Visualize wavelets
 
@@ -708,7 +711,7 @@ end
 powerout_norm = normalize_spectrogram(powerout,t_morlet);
 
 avg_power_norm = mean(powerout_norm,4);
-
+stimChans = badChans;
 smallMultiples_responseTiming_spectrogram(avg_power_norm,t_morlet,f_morlet,'type1',stimChans,'type2',0,'average',1);
 
 return
@@ -719,13 +722,7 @@ return
 avg_power = mean(powerout,4);
 smallMultiples_responseTiming_spectrogram(avg_power,t_morlet,f_morlet,'type1',stimChans,'type2',0,'average',1)
 
-
-
-
 % sort by reaction time
-
-
-
 %% Visualize PLV
 
 % chan 1 is the lower valued chan, so e.g., 17, 20

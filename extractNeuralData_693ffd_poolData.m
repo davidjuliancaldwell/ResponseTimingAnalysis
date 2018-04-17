@@ -169,7 +169,7 @@ end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+%save(fullfile(current_direc, [sid 'pooledData.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
 
 return
 

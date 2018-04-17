@@ -18,7 +18,7 @@
 % %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
 % 
 % % DJC Desktop
-DATA_DIR = 'C:\Users\djcald\Data\ConvertedTDTfiles';
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 % 
 % % DJC Laptop
 % %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
@@ -230,6 +230,7 @@ title('stim from file')
 
 % assuming stim1 here is the channel where stim was being delivered
 ax4 = subplot(4,1,4);
+t_stimFile = t_stimFile(1:length(stim1)); % DJC 4-15-2018 for the off target condition 
 plot(t_stimFile,stim1);
 
 %link axis
@@ -241,6 +242,8 @@ if s==1
     t_begin = 40;
 elseif s ==2
     t_begin = 12;
+else 
+    t_begin = 0;
 end;
 buttonData = buttonData(t_button>t_begin);
 tactorData = tactorData(t_tact>t_begin);
@@ -305,7 +308,7 @@ plot(t_stimFile,stim1,'r');
 %findpeaks(buttonData,t_button,'MinpeakDistance',2,'Minpeakheight',10e-3)
 %% QUANTIFY RXN TIME TO CORTICAL STIM
 % get epochs for button press, with start being onset of stimulation marker
-if s == 1
+if s == 1 || s == 3
     %
     trainTimes = find(stimFromFile~=0);
     
@@ -313,7 +316,7 @@ if s == 1
     condType = condType(1:120);
     
     % pick condition type where stimulation was delivered
-    if s == 1
+    if s == 1 || s== 3
         trainTimesCond1 = trainTimes(condType==0);
     elseif s == 2
         trainTimesCond1 = trainTimes(condType==0 | condType==1);
@@ -353,7 +356,40 @@ if s == 1
     title('Histogram of reaction times')
     xlabel('Time (seconds')
     ylabel('Count')
+    %%%%%%%%%%
+        % DJC 4-15-2018
+    trainTimesNull = trainTimes(condType == 2);
+    epochedButtonNull = squeeze(getEpochSignal(buttonDataClip,trainTimesNull,(trainTimesNull + sampsEnd)));
     
+        figure
+    t_epoch = [0:size(epochedButtonNull,1)-1]/fs_stim;
+    plot(t_epoch,epochedButtonNull);
+    
+    % vector of pks of button press
+    
+    buttonPksVecCortNull = zeros(size(epochedButtonNull,2),1);
+    buttonLocsVecCortNull = zeros(size(epochedButtonNull,2),1);
+    
+    clear buttonPksTemp buttonLocsTemp tactorPksTemp tactorLocsTemp;
+
+    for i = 1:size(epochedButtoNulln,2)
+        [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+        if isempty(buttonPksTemp)
+            buttonPksTemp = NaN;
+            buttonLocsTemp = NaN;
+        end
+        buttonPksVecCortNull(i) = buttonPksTemp;
+        buttonLocsVecCortNull(i) = buttonLocsTemp;
+    end
+    
+    % histogram of rxn times, assume 200 ms or greater  & less than 1 s
+    figure
+    % set number of bins
+    nbins = 15;
+    histogram(buttonLocsVecCortNull(buttonLocsVecCortNull>respLo & buttonLocsVecCortNull<respHi ),nbins)
+    title('Histogram of reaction times')
+    xlabel('Time (seconds')
+    ylabel('Count')
  
 end
 %% RXN TIME FOR TACTOR STIM
@@ -454,7 +490,7 @@ end
 % clear all variables except the ones that are useful for further
 % iterations 
 
-clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR sid
+%clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR sid
 
 
 

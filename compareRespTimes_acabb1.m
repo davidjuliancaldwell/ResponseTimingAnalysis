@@ -6,6 +6,8 @@
 % set bounds on data, assume rxn time has to be greater than 200 ms and
 % less than 1 s
 
+respLo = 0.1; % djc 4-15-2018
+respHi = 1; % djc 4-15-2018
 tactorLocsVecTactTrim = tactorLocsVecTact(tactorLocsVecTact>respLo & tactorLocsVecTact<respHi);
 buttonTactDiffTrim = buttonTactDiff(buttonTactDiff>respLo & buttonTactDiff<respHi);
 buttonLocsVecCortTrim = buttonLocsVecCort(buttonLocsVecCort>respLo & buttonLocsVecCort<respHi );
@@ -26,7 +28,7 @@ cort = 1e3.*buttonLocsVecCort;
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
+%save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
 
 
 

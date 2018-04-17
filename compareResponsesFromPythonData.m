@@ -1,5 +1,6 @@
 %% 12-10-2016 - Use MATLAB to compare response times from Python 
-% READ TABLE
+% READ TABLET
+
 %T = readtable('dataCleaned.csv');
 
 T = readtable('dataCleaned_4subj.csv');

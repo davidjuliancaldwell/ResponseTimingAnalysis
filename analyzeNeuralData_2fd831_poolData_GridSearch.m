@@ -46,13 +46,14 @@ samps_post_stim = round(post_stim/1e3*fs_data);
 
 pre_stim = 1000;
 samps_pre_stim = round(pre_stim/1e3*fs_data);
+        stimChans = [1 9 24 29 32]; % 29 was bad too, 1 9 29 32 were the stim channels
 
 %% ica_optimize
 ica_optimize = 0;
 
 if ica_optimize
     
-    stimChans = [9 17 50 58];
+    stimChans = [1 9 24 32];
     x0 = 50;
     [x history searchdir] = optimize_ICA(data,'fs',eco_fs,'meansub',0,'orderpoly',1,'stimChans',stimChans,'x0',x0)
     

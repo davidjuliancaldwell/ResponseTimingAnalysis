@@ -172,6 +172,31 @@ for ind = chanIntList
 end
 
 % 9-28-2017 - save intermediate data for plotting response map
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% hilb amp for mike 
+fs = fs_data;
+sigInt = squeeze(dataInt(:,19,:));
+hilb = hilbAmp(sigInt, [12 18], fs);
+logHilb = log(hilbAmp(sigInt, [12 18], fs).^2);
+
+
+figure
+subplot(2,1,1)
+plot(t,hilb)
+subplot(2,1,2)
+plot(t,logHilb)
+subplot(2,1,2)
+title('Log hilbert squared beta (12-18 Hz)')
+subplot(2,1,1)
+title('hilbert beta (12-18 Hz)')
+subplot(2,1,2)
+xlabel('time (ms')
+ylabel('log power.^2')
+subplot(2,1,1)
+ylabel('power')
+
+%
 
     %%
 sig = processedSig;

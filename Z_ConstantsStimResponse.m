@@ -1,4 +1,4 @@
-SIDS = {'acabb1','c19968','693ffd','2fd831'};
+SIDS = {'acabb1','c19968','693ffd','2fd831','a1355e'};
 
 OUTPUT_DIR = fullfile(myGetenv('OUTPUT_DIR'), 'stimResponse', 'figures');
 TouchDir(OUTPUT_DIR);

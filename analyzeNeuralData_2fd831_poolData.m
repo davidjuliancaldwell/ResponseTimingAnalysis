@@ -34,7 +34,7 @@ clearvars epochedCortEco_cell buttonLocsSamps_cell_ind
 t_epoch = t_epoch_good;
 
 %% get data of interest
-condInt = 5;
+condInt = 1;
 condIntAns = uniqueCond(condInt);
 dataInt = data{condInt};
 buttonLocsInt = buttonLocs{condInt};

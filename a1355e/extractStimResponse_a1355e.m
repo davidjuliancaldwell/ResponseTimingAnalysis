@@ -1,55 +1,28 @@
 %% load in subject
-
+close all;clear all;clc
 % this is from my z_constants
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 addpath('./scripts')
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
-sid = SIDS{4};
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming';
+sid = SIDS{5};
 
-% ui box for input
-list_str = {'1st block','2nd block'};
+load(fullfile(DATA_DIR,'ResponseTiming-1.mat'))
+block = '1';
 
-[s,v] = listdlg('PromptString','Pick experiment',...
-    'SelectionMode','single',...
-    'ListString',list_str);
-
-% load in data
-if (strcmp(sid, '2fd831'))
-    folder_data = strcat(DATA_DIR,'\2fd831');
-    
-    if s == 1
-        load(fullfile(folder_data,'ResponseTiming-1.mat'))
-        block = '1';
-    elseif s == 2
-        load(fullfile(folder_data,'ResponseTiming-2.mat'))
-        block = '2';
-    end
-    
-end
-
+plotIt = 1;
 %% load in data of interest
 
 stim = Stim.data;
 fs_stim = Stim.info.SamplingRateHz;
-
 clear Stim
 
-% the eco data is crashing it right now
-% eco1 = ECO1.data;
-% eco2 = ECO2.data;
-% eco3 = ECO3.data;
 fs_data = ECO1.info.SamplingRateHz;
-%
-%
 clear ECO1 ECO2 ECO3
-% data = [eco1 eco2 eco3];
-% clear  eco1 eco2 eco3
 
 sing = Sing.data;
 fs_sing = Sing.info.SamplingRateHz;
-
 clear Sing
 
 tact = Tact.data;
@@ -58,12 +31,11 @@ clear Tact
 
 valu = Valu.data;
 fs_valu = Valu.info.SamplingRateHz;
-
 clear Valu
 
-%% figure out stim times
-% vector of condition type
-% BOTH blocks used the same file
+% figure out stim times
+% vector of condition type - for first subject, looks like condition type
+% is what was used , rather than test_condition, BOTH blocks used the same
 % file
 condType= dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_condition_1_modified_9_23_2016.txt');
 train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_stimTrainDelivery_1.txt');
@@ -72,7 +44,6 @@ train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAn
 stimFromFile = tact(:,3);
 
 % button press, start being onset of stimulation marker
-
 trainTimes = find(stimFromFile~=0);
 
 % shrink condition type to be 140
@@ -82,7 +53,6 @@ trainTimes = find(stimFromFile~=0);
 % for the 1st block, this dropped a no stim
 condType = condType(1:139);
 
-
 % pick condition type where stimulation was delivered
 
 uniqueCond = unique(condType);
@@ -91,15 +61,6 @@ trainTimesTotal = {};
 for i = 1:length(uniqueCond)
     trainTimesTotal{i} = trainTimes(condType==uniqueCond(i));
 end
-
-% just in case - keep these around
-trainTimesCond_noStim = trainTimes(condType==0);
-trainTimesCond_offTarget = trainTimes(condType==1);
-trainTimesCond_tactor = trainTimes(condType==-1);
-trainTimesCond_100 = trainTimes(condType==2);
-trainTimesCond_200 = trainTimes(condType==3);
-trainTimesCond_400 = trainTimes(condType==4);
-trainTimesCond_800 = trainTimes(condType==5);
 
 %% plot stim
 %
@@ -117,7 +78,7 @@ end
 xlabel('Time (ms)')
 ylabel('Amplitude (V)')
 
-subtitle('Stimulation Channels')
+%subtitle('Stimulation Channels')
 
 
 
@@ -464,12 +425,14 @@ buttonLocs{uniqueCond==-1} = buttonTactDiff;
 buttonLocsSamps{uniqueCond==-1} = buttonTactDiffSamps;
 
 %% save it
-
-current_direc = pwd;
-
-%save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
-
-clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
-
-%close all
-
+saveIt = 0;
+if saveIt
+    current_direc = pwd;
+    
+    save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+    
+    clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+    
+    close all
+    
+end
