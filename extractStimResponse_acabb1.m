@@ -372,7 +372,7 @@ if s == 1 || s == 3
     
     clear buttonPksTemp buttonLocsTemp tactorPksTemp tactorLocsTemp;
 
-    for i = 1:size(epochedButtoNulln,2)
+    for i = 1:size(epochedButtonNull,2)
         [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
         if isempty(buttonPksTemp)
             buttonPksTemp = NaN;
@@ -483,6 +483,45 @@ if s == 2
     ylabel('Count')
     
     % save train delivery times for brain data 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%% null trial check
+    
+          % DJC 4-15-2018
+    trainTimesNull = trainTimes(condType == 2);
+    epochedButtonNull = squeeze(getEpochSignal(buttonDataClip,trainTimesNull,(trainTimesNull + sampsEndButton)));
+    
+        figure
+    t_epoch = [0:size(epochedButtonNull,1)-1]/fs_stim;
+    plot(t_epoch,epochedButtonNull);
+    
+    % vector of pks of button press
+    
+    buttonPksVecCortNull = zeros(size(epochedButtonNull,2),1);
+    buttonLocsVecCortNull = zeros(size(epochedButtonNull,2),1);
+       
+    buttonPksVecCortNull = zeros(size(epochedButtonNull,2),1);
+    buttonLocsVecCortNull = zeros(size(epochedButtonNull,2),1);
+    
+    clear buttonPksTemp buttonLocsTemp tactorPksTemp tactorLocsTemp;
+
+    for i = 1:size(epochedButtonNull,2)
+        [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+        if isempty(buttonPksTemp)
+            buttonPksTemp = NaN;
+            buttonLocsTemp = NaN;
+        end
+        buttonPksVecCortNull(i) = buttonPksTemp;
+        buttonLocsVecCortNull(i) = buttonLocsTemp;
+    end
+    
+    % histogram of rxn times, assume 200 ms or greater  & less than 1 s
+    figure
+    % set number of bins
+    nbins = 15;
+    histogram(buttonLocsVecCortNull(buttonLocsVecCortNull>respLo & buttonLocsVecCortNull<respHi ),nbins)
+    title('Histogram of reaction times')
+    xlabel('Time (seconds')
+    ylabel('Count')
+ 
     
     
 end

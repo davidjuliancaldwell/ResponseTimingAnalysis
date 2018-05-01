@@ -1,5 +1,5 @@
 % this is from my z_constants
-close all;clear all;clc
+%close all;clear all;clc
 Z_ConstantsStimResponse;
 
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\TOJ';
@@ -11,201 +11,301 @@ for s = 1:2
     if s == 1
         load(fullfile(folder_data,'TOJ-1.mat'))
         block = '1';
+        ECoG = cat(2,ECO1.data,ECO2.data,ECO3.data);
+        stim = Stim.data;
+        tact = Tact.data;
+        
+        
+        clearvars ECO1 ECO2 ECO3 Stim tact
     elseif s == 2
         load(fullfile(folder_data,'TOJ-2.mat'))
         block = '2';
-        length1st = size(tact,1);
-    end
-    
-    % load in data of interest
-    if s == 1
-        stim = Stim.data;
-    else
+        ECoG = [ECoG; cat(2,ECO1.data,ECO2.data,ECO3.data)];
         stim = [stim; Stim.data];
+        ecoFs = ECO1.info.SamplingRateHz;
+        fsStim = Stim.info.SamplingRateHz;
+        fsTact = Tact.info.SamplingRateHz;
+        clearvars ECO1 ECO2 ECO3 Stim Tact
+        
+        % get rid of bad channels
+        bads = [79:98];
+        goodVec = logical(ones(size(ECoG,2),1));
+        goodVec(bads) = 0;
+        ECoG = ECoG(:,goodVec);
+        
+        % convert sampling rate
+        
+        fac = fsTact/ecoFs;
+        % stim chans, 16/24
+        
+        stimChans = [16 24];
+        
     end
-    fs_stim = Stim.info.SamplingRateHz;
     
-    clear Stim
-    
-    eco1 = ECO1.data;
-    fs_data = ECO1.info.SamplingRateHz;
-    eco_fs = fs_data;
-    clear ECO1
-    eco2 = ECO2.data;
-    clear ECO2
-    
-    eco3 = ECO3.data;
-    clear ECO3
-    
-    if s == 1
-        data = [eco1 eco2 eco3];
-    else
-        data = [data; [eco1 eco2 eco3]];
-    end
-    clearvars eco1 eco2 eco3
-    
-    
-    
-    % only 64 channels grid
-    
-    %data = data(:,1:64);
-    
-    if s ==1
-        tact = Tact.data;
-    else
-        tact = [tact; Tact.data];
-    end
-    fs_tact = Tact.info.SamplingRateHz;
-    clear Tact
 end
-samplesOfPulse = round(2*fs_stim/1e3);
-% build a burst table with the timing of stimuli
-preStim = round(fs_stim*1);
-[trainTimes] = find(tact(:,8)==1)- preStim;
-logicalMask = logical(ones(size(trainTimes)));
-logicalMask(14) = 0;
-trainTimes = trainTimes(logicalMask);
-starts = trainTimes;
-ends = trainTimes + samplesOfPulse;
-delay = round(0.2867*fs_stim/1e3);
-% extract data
-% try and account for delay for the stim times
-stimTimes = starts+delay;
-trainTimes=stimTimes;
+load(fullfile('a1355e_TOJ_matlab.mat'));
 
-% DJC 7-7-2016, changed presamps and post samps to 1 second
-presamps = round(1 * fs_data); % pre time in sec
-postsamps = round(1 * fs_data); % post time in sec, % modified DJC to look at up to 300 ms after
+%% define what to epoch around for centering on stim trials 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% sampling rate conversion between stim and data
-fac = fs_stim/fs_data;
+trainTimes = round(trainTimes/fac) + round(1*ecoFs); % convert from the tactor sampling rate to the eco sampling rate, add one second to center it around the stim train
 
-% find times where stims start in terms of data sampling rate
-sts = round(stimTimes / fac);
+preTime = 1000; % ms
+postTime = 2000; % ms
+preSamps = round(preTime*ecoFs/1e3); % convert time to samps
+postSamps = round(postTime*ecoFs/1e3); % convert time to samps
+tEpoch = [-preSamps:postSamps-1]/ecoFs;
 
-% get that button press
-tact(tact(:,2) >= 0.009,2) = 0.009;
-[buttonPksTemp,buttonLocsTemp] = findpeaks(tact(:,2),fs_tact,'minpeakdistance',2,'Minpeakheight',0.008);
-tact(tact(:,2) < 0.009,2) = 0;
-tact(:,2) = tact(:,2)*1000;
+% get signal epochs
+epochedECoG = getEpochSignal(ECoG,trainTimes-preSamps,trainTimes+postSamps); % break up the ECoG into chunks
 
+%% behavioral data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% delays manually used
+delays = [2700,2550,2500,2600,2700,2550,2700,2550,2550,2700,2800,2550,2400,2400,2800,2850,2400,2850,2400,2580,2400]-2700;
+
+% tactor = 0
+% stim = 1
+% same = 2
+
+firstFeel = [1,2,1,1,0,2,0,1,1,1,0,2,1,1,1,0,1,0,1,0,1]; % which did he feel first
+firstFeel([8,9,14]+1) = 2;
+% ones with slight edge for stim put back as same
+
+
+%% process artifacts centered on stim 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+trainDuration = [0 500]; % this is how long the stimulation train was
+xlims = [-200 2000]; % these are the x limits to visualize in plots
+chanIntList = [7 8 15 23 31 32 39 40 47 48];
+%chanIntList = [8 31 32];
+% these are the channels of interest to visualize in closer detail
+minDuration = 0.5; % minimum duration of artifact in ms
+
+type = 'dictionary';
+
+useFixedEnd = 0;
+%fixedDistance = 2;
+fixedDistance = 4; % in ms
+plotIt = 0;
+
+%pre = 0.4096; % in ms
+%post = 0.4096; % in ms
+
+pre = 0.8; % started with 1
+post = 1; % started with 0.2
+% 2.8, 1, 0.5 was 3/19/2018
+
+% these are the metrics used if the dictionary method is selected. The
+% options are 'eucl', 'cosine', 'corr', for either euclidean distance,
+% cosine similarity, or correlation for clustering and template matching.
+
+distanceMetricDbscan = 'cosine';
+distanceMetricSigMatch = 'eucl';
+amntPreAverage = 3;
+normalize = 'preAverage';
+%normalize = 'firstSamp';
+
+recoverExp = 0;
+
+[processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(epochedECoG,'type',type,...
+    'fs',ecoFs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
+    'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
+    'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,'minDuration',minDuration);
 %%
+% visualization
+% of note - more visualizations are created here, including what the
+% templates look like on each channel, and what the discovered templates are
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+vizFunc.multiple_visualizations(processedSig,epochedECoG,'fs',ecoFs,'type',type,'tEpoch',...
+    tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
+    'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')
+
+%% PROCESS THE DATA
+% process the wavelet using morlet process and PLV
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% trial by trial wavelet decomp, PLV
+
+%%%%%% PLV
+freqRange = [8 12];
+[plv] = plvWrapper(processedSig,ecoFs,freqRange,stimChans);
+
+%%%%%%% wavelet
+timeRes = 0.050; % 50 ms bins
+
+[powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,ecoFs,timeRes,stimChans);
+
+tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
+
+%% Visualize wavelets
+
+% example wavelet decomp
+%trialInt = 20; % which channel to check out
+chanInt = 12;
+
+
+response = buttonLocs{condInt};
+
+for i = 1:size(powerout,4)
+    totalFig = figure;
+    totalFig.Units = 'inches';
+    totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
+    subplot(3,1,1);
+    imagesc(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i));
+    axis xy;
+    xlabel('time (ms)');
+    ylabel('frequency (Hz)');
+    title(['Wavelet decomposition Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
+    vline(stimTime(i),'r','stim')
+    vline(1e3*response(i),'g','response')
+    xlim([-200 1000]);
+    set(gca,'fontsize',14)
+    
+    
+    
+    %figure;
+    h1 = subplot(3,1,2);
+    plot(1e3*tEpoch,1e6*processedSig(:,chanInt,i))
+    vline(stimTime(i),'r','stim')
+    xlabel('time (ms)');
+    ylabel('microvolts')
+    title(['Processed Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
+    vline(1e3*response(i),'g','response')
+    ylims = [-(max(abs(1e6*processedSig(:,chanInt,i))) + 10) (max(abs(1e6*processedSig(:,chanInt,i))) + 10)];
+    ylim(ylims);
+    ylim_h1 = ylims;
+    xlim([-200 1000]);
+    set(gca,'fontsize',14)
+    
+    
+    h2 = subplot(3,1,3);
+    plot(1e3*tEpoch,1e6*dataInt(:,chanInt,i))
+    vline(stimTime(i),'r','stim')
+    xlabel('time (ms)');
+    ylabel('microvolts')
+    title(['Raw Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
+    vline(1e3*response(i),'g','response')
+    ylim(ylim_h1);
+    xlim([-200 1000]);
+    set(gca,'fontsize',14);
+    
+    
+    
+    linkaxes([h1,h2],'xy');
+    
+end
+%%
+% plot average spectrogram
+avgPower = mean(powerout,4);
+smallMultiples_responseTiming_spectrogram(avgPower,tMorlet,fMorlet,'type1',stimChans,'type2',0,'average',1)
+
+
+%% Visualize PLV
+
+% chan 1 is the lower valued chan, so e.g., 17, 20
+chan1 = 34;
+chan2 = 42;
+figure;
+
+% probably want to discard the number of samples for the order of the
+% filter. So for alpha
+
+desiredF = 10;
+period = 1/desiredF;
+time4oscil = period*4; % time total in seconds
+order = round(time4oscil*ecoFs);
+samps_discard = order;
+
+
+plot(tEpoch, squeeze(plv(:, chan1, chan2)));
+ylim([0 1])
+vline(0)
+xlabel('Time (s)');
+ylabel('Plase Locking Value');
+title(['PLV between Channel ' num2str(chan1) ' and ' num2str(chan2)])
+
+t1 = 0;
+t2 =  0.2;
+
+tSub = tEpoch((tEpoch>t1 & tEpoch<t2));
+plvSub = plv((tEpoch>t1 & tEpoch<t2),:,:);
+
 figure
-hold on
-t = [0:length(tact(:,1))-1]/fs_stim;
-plot(t,stim(:,1),'linewidth',2)
-plot(t,tact(:,1),'linewidth',2)
-plot(t,tact(:,4),'linewidth',2)
-plot(t,tact(:,2),'linewidth',2)
-legend({'stim','tactor','audio train','button'})
-%vline(trainTimes/fs_stim)
+maxPlv = squeeze(max(plvSub,[],1));
+imagesc(maxPlv)
+h = colorbar;
+h.Limits = [0 1];
+xlabel('Channel')
+ylabel('Channel')
+title(['Max Phase Locking Value between T  = ' num2str(t1) ' seconds and T = ' num2str(t2) ' seconds'])
 
-% QUANTIFY RXN TIME TO CORTICAL STIM
-sampsEnd = round(3*fs_stim);
 
-epochedTactor = squeeze(getEpochSignal(tact(:,1),trainTimes,trainTimes+sampsEnd));
-epochedAudio = squeeze(getEpochSignal(tact(:,4),trainTimes,trainTimes+sampsEnd));
-epochedStim = squeeze(getEpochSignal(stim(:,1),trainTimes,trainTimes+sampsEnd));
-epochedButton = squeeze(getEpochSignal(tact(:,2),trainTimes,trainTimes+sampsEnd));
+return
 
-t = [-preStim:sampsEnd-preStim-1]/fs_tact;
-t_samps = [-preStim:sampsEnd-preStim-1];
-% epoched button press
-%%
-numTrials = size(epochedAudio,2);
-[p,n]=numSubplots(numTrials);
-figure
-whichPerceived = {'stim','same','stim','stim','tactor','same','tactor','stim','stim','stim','tactor','same','stim',...
-    'stim','stim','tactor','stim','tactor','stim','tactor','stim'};
-whichPerceiveMoresame = {'stim','same','stim','stim','tactor','same','tactor','stim','same','same','tactor','same','stim',...
-    'stim','same','tactor','stim','tactor','stim','tactor','stim'};
+% Below here is tactor
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-for i = 1:numTrials
-    subplot(p(1),p(2),i)
-    hold on
-    plot(t,epochedStim(:,i),'linewidth',2)
-    plot(t,epochedTactor(:,i),'linewidth',2)
-    plot(t,epochedAudio(:,i),'linewidth',2)
-    plot(t,epochedButton(:,i),'linewidth',2)
-    title(whichPerceived{i})
-    xlabel('time (s)')
-    ylim([-6 6])
-end
-legend({'stim','tactor','audio train','button'})
+%% process artifacts focused on tactor 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%
-for j = 1:numTrials
-    
-    [buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton(t>0,j)),t(t>0),'NPeaks',1,'Minpeakheight',3);
-    [buttonPksTempSamps,buttonLocsTempSamps] = findpeaks((epochedButton(t_samps>0,j)),t_samps(t_samps>0),'NPeaks',1,'Minpeakheight',0.008);
-    
-    sprintf(['button ' num2str(buttonLocsTemp)])
-    sprintf(['button ' num2str(buttonLocsTempSamps)])
-    
-    [tactorPksTemp,tactorLocsTemp] = findpeaks((epochedTactor(:,j)),t,'NPeaks',1,'Minpeakheight',1);
-    [tactorPksTempSamps,tactorLocsTempSamps] = findpeaks((epochedTactor(:,j)),t_samps,'NPeaks',1,'Minpeakheight',1);
-    
-    sprintf(['tactor ' num2str(tactorLocsTemp)])
-    sprintf(['tactor ' num2str(tactorLocsTempSamps)])
-    
-    [stimPksTemp,stimLocsTemp] = findpeaks((epochedStim(:,j)),t,'NPeaks',1,'Minpeakheight',1);
-    [stimPksTempSamps,stimLocsTempSamps] = findpeaks((epochedStim(:,j)),t_samps,'NPeaks',1,'Minpeakheight',1);
-    
-    sprintf(['stim train ' num2str(stimLocsTemp)])
-    sprintf(['tactor ' num2str(stimLocsTempSamps)])
-    
-    if isempty(buttonPksTemp)
-        buttonPksTemp = NaN;
-        buttonLocsTemp = NaN;
-        buttonPksTempSamps = NaN;
-        buttonLocsTempSamps = NaN;
-    end
-    
-    if isempty(tactorPksTemp)
-        tactorPksTemp = NaN;
-        tactorLocsTemp = NaN;
-        tactorPksTempSamps = NaN;
-        tactorLocsTempSamps = NaN;
-    end
-    
-    if isempty(stimPksTemp)
-        stimPksTemp = NaN;
-        stimLocsTemp = NaN;
-        stimPksTempSamps = NaN;
-        stimLocsTempSamps = NaN;
-    end
-    
-    buttonPksVec(j) = buttonPksTemp;
-    buttonLocsVec(j) = buttonLocsTemp;
-    
-    % do samples too
-    buttonPksVecSamps(j) = buttonPksTempSamps;
-    buttonLocsVecSamps(j) = buttonLocsTempSamps;
-    
-    tactorPksVec(j) = tactorPksTemp;
-    tactorLocsVec(j) = tactorLocsTemp;
-    
-    tactorPksVecSamps(j) = tactorPksTempSamps;
-    tactorLocsVecSamps(j) = tactorLocsTempSamps;
-    
-    stimPksVec(j) = stimPksTemp;
-    stimLocsVec(j) = stimLocsTemp;
-    
-    stimPksVecSamps(j) = stimPksTempSamps;
-    stimLocsVecSamps(j) = stimLocsTempSamps;
-    
-end
+trainTimesTactor = trainTimes + round(tactorStimDiff*ecoFs)';
 
-%%
-tactorStimDiff = tactorLocsVec - stimLocsVec;
+preTime = 1000; % ms
+postTime = 2000; % ms
+preSamps = round(preTime*ecoFs/1e3); % convert time to samps
+postSamps = round(postTime*ecoFs/1e3); % convert time to samps
+tEpoch = [-preSamps:postSamps-1]/ecoFs;
 
-responseTimes = buttonLocsVec - min(tactorLocsVec,stimLocsVec);
+% get signal epochs
+epochedECoGTact = getEpochSignal(ECoG,trainTimesTactor-preSamps,trainTimesTactor+postSamps); % break up the ECoG into chunks
 
-saveIt = 1;
 
-if saveIt
-    current_direc = pwd;
-    
-    save(fullfile(current_direc, [sid '_TOJ_matlab.mat']),'tactorStimDiff','responseTimes','t','trainTimes',...,
-        'fs_stim','epochedButton','epochedTactor','epochedAudio','epochedStim','sampsEnd');
-end
+%% process artifacts centered on tactor 
+
+trainDuration = [0 500]; % this is how long the stimulation train was
+xlims = [-200 2000]; % these are the x limits to visualize in plots
+chanIntList = [7 8 15 23 31 32 39 40 47 48];
+%chanIntList = [8 31 32];
+% these are the channels of interest to visualize in closer detail
+minDuration = 0.5; % minimum duration of artifact in ms
+
+type = 'dictionary';
+
+useFixedEnd = 0;
+%fixedDistance = 2;
+fixedDistance = 4; % in ms
+plotIt = 0;
+
+%pre = 0.4096; % in ms
+%post = 0.4096; % in ms
+
+pre = 0.8; % started with 1
+post = 0.5; % started with 0.2
+% 2.8, 1, 0.5 was 3/19/2018
+
+% these are the metrics used if the dictionary method is selected. The
+% options are 'eucl', 'cosine', 'corr', for either euclidean distance,
+% cosine similarity, or correlation for clustering and template matching.
+
+distanceMetricDbscan = 'cosine';
+distanceMetricSigMatch = 'eucl';
+amntPreAverage = 3;
+normalize = 'preAverage';
+%normalize = 'firstSamp';
+
+recoverExp = 0;
+
+[processedSigTact,templateDictCellTact,templateTrialTact,startIndsTact,endIndsTact] = analyFunc.template_subtract(epochedECoGTact,'type',type,...
+    'fs',ecoFs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
+    'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
+    'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,'minDuration',minDuration);
+%
+% visualization
+% of note - more visualizations are created here, including what the
+% templates look like on each channel, and what the discovered templates are
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+vizFunc.multiple_visualizations(processedSigTact,epochedECoGTact,'fs',ecoFs,'type',type,'tEpoch',...
+    tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
+    'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')

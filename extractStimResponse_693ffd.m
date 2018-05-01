@@ -2,6 +2,12 @@
 
 % this is from my z_constants
 
+% this is from my z_constants
+Z_ConstantsStimResponse;
+% add path for scripts to work with data tanks
+addpath('./scripts')
+
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 sid = SIDS{3};
 
 % ui box for input
@@ -466,7 +472,7 @@ current_direc = pwd;
 
 %save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
-clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+%clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
 %close all
 

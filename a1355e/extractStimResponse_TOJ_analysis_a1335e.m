@@ -189,7 +189,7 @@ tactorStimDiff = tactorLocsVec - stimLocsVec;
 
 responseTimes = buttonLocsVec - min(tactorLocsVec,stimLocsVec);
 
-saveIt = 1;
+saveIt = 0;
 
 if saveIt
     current_direc = pwd;

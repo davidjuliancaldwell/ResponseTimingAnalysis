@@ -253,24 +253,7 @@ title('Off Target Stim Channel')
 %link axis
 linkaxes([ax1,ax2,ax3,ax4,ax5],'x')
 
-%% for 1st subject - only look at parts where t > 50 for sensory stim, t > 12 for tactor  (t_begin)
-
-% t_begin = 10 ;
-%
-% buttonData = buttonData(t_button>t_begin);
-% tactorData = tactorData(t_tact>t_begin);
-% stimFromFile = stimFromFile(t_stimFile>t_begin);
-% stim1 = stim1(t_stimFile>t_begin);
-% stim2 = stim2(t_stimFile>t_begin);
-%
-% t_button = t_button(t_button>t_begin);
-% t_tact = t_tact(t_tact>t_begin);
-% t_stimFile = t_stimFile(t_stimFile>t_begin);
-
-% set respLo and respHi, which are the values which for less or greater
-% than rxn times aren't analyzed
-
-% started with respLo - 0.150, try 0.100
+%%
 respLo = 0.100;
 respHi = 1;
 

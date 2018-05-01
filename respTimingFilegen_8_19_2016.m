@@ -102,17 +102,17 @@ ptsTotal(logicalValues) = (ptsTotal(logicalValues)-(floor(fs*timeToDelay)));
 
 
 %% write these times to file for stim train delivery
-
-filename = sprintf('%s_stimTrainDelivery_%s.txt',sid,fileNum);
-fileID = fopen(filename,'w+');
-
-% should be ptsTotal, not pts - DJC 9-13-2016 
-fprintf(fileID,'%d\r\n',pts);
-fclose(fileID);
-
-%% write these times to file for condition 
-
-filename = sprintf('%s_condition_%s.txt',sid,fileNum);
-fileID = fopen(filename,'w+');
-fprintf(fileID,'%d\r\n',vectorCondRandTotal);
-fclose(fileID);
+% 
+% filename = sprintf('%s_stimTrainDelivery_%s.txt',sid,fileNum);
+% fileID = fopen(filename,'w+');
+% 
+% % should be ptsTotal, not pts - DJC 9-13-2016 
+% fprintf(fileID,'%d\r\n',pts);
+% fclose(fileID);
+% 
+% %% write these times to file for condition 
+% 
+% filename = sprintf('%s_condition_%s.txt',sid,fileNum);
+% fileID = fopen(filename,'w+');
+% fprintf(fileID,'%d\r\n',vectorCondRandTotal);
+% fclose(fileID);

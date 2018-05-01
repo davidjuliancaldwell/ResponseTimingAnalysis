@@ -278,6 +278,7 @@ title('button data')
 ax3 = subplot(5,1,3);
 plot(t_stimFile,stimFromFile);
 title('stim from file')
+vline(trainTimes(condType==-1)/fs_tact)
 
 % assuming stim1 here is the channel where stim was being delivered
 ax4 = subplot(5,1,4);
@@ -469,7 +470,7 @@ current_direc = pwd;
 
 %save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
-clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+%clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block t_epoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
 %close all
 
