@@ -1,5 +1,5 @@
 % this is from my z_constants
-%close all;clear all;clc
+close all;clear all;clc
 Z_ConstantsStimResponse;
 
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\TOJ';
@@ -12,8 +12,8 @@ for s = 1:2
         load(fullfile(folder_data,'TOJ-1.mat'))
         block = '1';
         ECoG = cat(2,ECO1.data,ECO2.data,ECO3.data);
-        stim = Stim.data;
-        tact = Tact.data;
+        %stim = Stim.data;
+        %tact = Tact.data;
         
         
         clearvars ECO1 ECO2 ECO3 Stim tact
@@ -21,10 +21,10 @@ for s = 1:2
         load(fullfile(folder_data,'TOJ-2.mat'))
         block = '2';
         ECoG = [ECoG; cat(2,ECO1.data,ECO2.data,ECO3.data)];
-        stim = [stim; Stim.data];
+        %stim = [stim; Stim.data];
         ecoFs = ECO1.info.SamplingRateHz;
-        fsStim = Stim.info.SamplingRateHz;
-        fsTact = Tact.info.SamplingRateHz;
+       % fsStim = Stim.info.SamplingRateHz;
+       % fsTact = Tact.info.SamplingRateHz;
         clearvars ECO1 ECO2 ECO3 Stim Tact
         
         % get rid of bad channels
@@ -35,7 +35,8 @@ for s = 1:2
         
         % convert sampling rate
         
-        fac = fsTact/ecoFs;
+       % fac = fsTact/ecoFs;
+        fac = 2;
         % stim chans, 16/24
         
         stimChans = [16 24];
@@ -137,16 +138,17 @@ timeRes = 0.050; % 50 ms bins
 
 [powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,ecoFs,timeRes,stimChans);
 
-tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
+tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
 
 %% Visualize wavelets
 
 % example wavelet decomp
 %trialInt = 20; % which channel to check out
-chanInt = 12;
+chanInt = 15;
 
 
-response = buttonLocs{condInt};
+response = responseTimes;
+stimTime = zeros(size(response));
 
 for i = 1:size(powerout,4)
     totalFig = figure;
@@ -181,7 +183,7 @@ for i = 1:size(powerout,4)
     
     
     h2 = subplot(3,1,3);
-    plot(1e3*tEpoch,1e6*dataInt(:,chanInt,i))
+    plot(1e3*tEpoch,1e6*epochedECoG(:,chanInt,i))
     vline(stimTime(i),'r','stim')
     xlabel('time (ms)');
     ylabel('microvolts')
@@ -205,8 +207,8 @@ smallMultiples_responseTiming_spectrogram(avgPower,tMorlet,fMorlet,'type1',stimC
 %% Visualize PLV
 
 % chan 1 is the lower valued chan, so e.g., 17, 20
-chan1 = 34;
-chan2 = 42;
+chan1 = 15;
+chan2 = 23;
 figure;
 
 % probably want to discard the number of samples for the order of the
@@ -250,6 +252,19 @@ return
 %% process artifacts focused on tactor 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%stimTactDiffSamps = 
+
+for i = 1:length(stimTactDiff)
+    sigShifted(:,:,i) = circshift(sortedSig(:,:,i),sortedBasedOffFirst(i),1);
+end
+
+avgResponse = mean(sigShifted,3);
+tShift = tEpoch - sorted(1)/ecoFs;
+smallMultiples_responseTiming(avgResponse,tShift,'type1',stimChans,'type2',0,'average',1)
+
+
+
+%%
 trainTimesTactor = trainTimes + round(tactorStimDiff*ecoFs)';
 
 preTime = 1000; % ms

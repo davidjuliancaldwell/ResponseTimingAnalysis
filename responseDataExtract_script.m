@@ -9,7 +9,7 @@ Z_ConstantsStimResponse;
 % DJC Desktop
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 
-sid = SIDS{3};
+sid = SIDS{2};
 %%
 if strcmp(sid,'acabb1') % first subject
     %% add the right path

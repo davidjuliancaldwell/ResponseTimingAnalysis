@@ -2,8 +2,6 @@
 close all;clear all;clc
 % this is from my z_constants
 Z_ConstantsStimResponse;
-% add path for scripts to work with data tanks
-addpath('./scripts')
 
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming';
 sid = SIDS{5};

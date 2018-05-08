@@ -1,35 +1,15 @@
 %% starting with subject a
 
-%% initialize output and meta dir - THIS IS ALL IN THE MAJRO 
-% % % clear workspace
-% close all; clear all; clc
-% 
-% % set input output working directories - for David's PC right now
-% Z_ConstantsStimResponse;
-% 
-% % add path for scripts to work with data tanks
-% addpath('./scripts')
-% 
-% % subject directory, change as needed
-% % SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-% 
-% % data directory
-% 
-% %PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-% 
 % % DJC Desktop
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
-% 
-% % DJC Laptop
-% %DATA_DIR = 'C:\Users\David\GoogleDriveUW\GRIDLabDavidShared\ResponseTiming';
-% 
-% SIDS = {'acabb1'};
 
 %% load in subject
 
 % this is from my z_constants
+Z_ConstantsStimResponse;
 
 sid = SIDS{1};
+DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 
 % ui box for input
 list_str = {'sensory stimulation','tactor stimulation','off target stimulation'};
@@ -53,23 +33,18 @@ if (strcmp(sid, 'acabb1'))
     
 end
 
+plotIt = 1;
+
 %% load in data of interest
 
-stim = Stim.data;
-fs_stim = Stim.info.SamplingRateHz;
-data = Wave.data;
-fs_data = Wave.info.SamplingRateHz;
-sing = Sing.data;
-fs_sing = Sing.info.SamplingRateHz;
+[stim,sing,tact,fsStim,fsSing,fsData,fsTact] = load_stim_data(Stim,Sing,ECO1,Tact);
 
-tact = Tact.data;
-fs_tact = Tact.info.SamplingRateHz;
+clear Stim Tact Sing
 
-valu = Valu.data;
-fs_valu = Valu.info.SamplingRateHz;
 
+if s~=2 
 %% plot stim
-%
+
 figure
 hold on
 for i = 1:size(stim,2)
@@ -90,10 +65,9 @@ subtitle('Stimulation Channels')
 
 
 
-%% Sing looks like the wave to be delivered, with amplitude in uA
+%%Sing looks like the wave to be delivered, with amplitude in uA
 % Try working from this - do this if not tactor stim
 
-if s~=2
     % build a burst table with the timing of stimuli
     bursts = [];
     
@@ -128,9 +102,8 @@ if s~=2
     
     % delay loks to be 0.2867 ms from below.
     
-end
 %% Plot stims with info from above
-if s~=2
+
     stim1 = stim(:,1);
     stim1Epoched = squeeze(getEpochSignal(stim1,(bursts(2,:)-1),(bursts(3,:))+1));
     t = (0:size(stim1Epoched,1)-1)/fs_stim;
@@ -166,9 +139,6 @@ elseif s==2
 end
 
 
-
-
-
 %% extract data
 if s~=2
     % try and account for delay for the stim times
@@ -186,55 +156,12 @@ if s~=2
     sts = round(stimTimes / fac);
 end
 
-%% look at tactor
+%% look at all simultaneously
 
 tactorData = tact(:,1);
-t_tact = (0:length(tactorData)-1)/fs_tact;
-figure
-plot(t_tact,tactorData);
-
-title('tactor data')
-
-% look at button press
-
 buttonData = tact(:,2);
-t_button = (0:length(buttonData)-1)/fs_tact;
-figure
-plot(t_button,buttonData);
 
-title('button data')
-
-% look at stim from file saved
-
-stimFromFile = tact(:,3);
-t_stimFile = (0:length(stim)-1)/fs_tact;
-figure
-plot(t_stimFile,stimFromFile);
-title('stim from file')
-
-% look at all 3 + stim waveform
-
-figure
-ax1 = subplot(4,1,1);
-plot(t_tact,tactorData)
-title('tactor data')
-
-ax2 = subplot(4,1,2);
-plot(t_button,buttonData);
-title('button data')
-
-ax3 = subplot(4,1,3);
-plot(t_stimFile,stimFromFile);
-title('stim from file')
-
-
-% assuming stim1 here is the channel where stim was being delivered
-ax4 = subplot(4,1,4);
-t_stimFile = t_stimFile(1:length(stim1)); % DJC 4-15-2018 for the off target condition 
-plot(t_stimFile,stim1);
-
-%link axis
-linkaxes([ax1,ax2,ax3,ax4],'x')
+analyze_all_inputs_simultaneously(tactorData,buttonData,stim,stimFromFile,fsTact)
 
 %% for 1st subject - only look at parts where t > 50 for sensory stim, t > 12 for tactor  (t_begin)
 
@@ -260,25 +187,6 @@ t_stimFile = t_stimFile(t_stimFile>t_begin);
 respLo = 0.150;
 respHi = 1;
 
-%% look at valu
-% figure
-% hold on
-% for i = 1:size(valu,2)
-%
-%     t = (0:length(valu)-1)/fs_stim;
-%     subplot(5,1,i)
-%     plot(t*1e3,valu(:,i))
-%     title(sprintf('Channel %d',i))
-%
-%
-% end
-%
-%
-% xlabel('Time (ms)')
-% ylabel('Amplitude (V)')
-%
-% subtitle('valu')
-
 %% 8-12-2016 - start quantifying data
 
 % vector of condition type - for first subject, looks like condition type
@@ -300,8 +208,6 @@ findpeaks(buttonDataClip,t_button(t_button>t_begin),'MinpeakDistance',2,'Minpeak
 hold on
 plot(t_stimFile,stimFromFile,'g');
 plot(t_stimFile,stim1,'r');
-
-
 
 % raw button
 %[buttonPks,buttonLocs] = findpeaks(buttonData,t_button,'MinpeakDistance',1.5)

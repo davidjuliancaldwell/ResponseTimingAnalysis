@@ -1,5 +1,5 @@
 %% load in subject
-close all;clear all;clc
+%close all;clear all;clc
 % this is from my z_constants
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
@@ -316,7 +316,7 @@ tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
 
 % example wavelet decomp
 %trialInt = 20; % which channel to check out
-chanInt = 12;
+chanInt = 15;
 
 
 response = buttonLocs{condInt};
