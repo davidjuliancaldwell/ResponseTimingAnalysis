@@ -2,7 +2,7 @@
 
 % load subject data, need sid still
 block = '1';
-load([sid,'_compareResponse_block_',block,'.mat'])
+%load([sid,'_compareResponse_block_',block,'.mat'])
 % set bounds on data, assume rxn time has to be greater than 0.150
 % if want to change reaction times, do it here! 
  respLo = 0.100;

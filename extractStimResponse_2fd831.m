@@ -58,10 +58,6 @@ condType = condType(1:139);
 stimTimes = bursts(2,:)+delay;
 trainTimes=stimTimes;
 
-% DJC 7-7-2016, changed presamps and post samps to 1 second
-presamps = round(1 * fsData); % pre time in sec
-postsamps = round(1 * fsData); % post time in sec, % modified DJC to look at up to 300 ms after
-
 %% look at all simultaneously
 
 tactorData = tact(:,1);

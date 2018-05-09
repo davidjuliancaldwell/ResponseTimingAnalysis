@@ -1,4 +1,4 @@
-function [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt)
+function [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch] = get_ISI(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt)
 
 tButton = (0:length(buttonData)-1)/fsTact;
 
@@ -142,16 +142,10 @@ end
 %%
 % calculate differences - MAKE SURE YOU ONLY DO THIS ONCE
 
-% in case of no tactor trials
-if exist('tactorLocsVec','var')
-    buttonTactDiff = buttonLocs{uniqueCond==-1} - tactorLocsVec;
-    buttonTactDiffSamps = buttonLocsSamps{uniqueCond==-1} - tactorLocsVecSamps;
-    
-    buttonLocs{uniqueCond==-1} = buttonTactDiff;
-    buttonLocsSamps{uniqueCond==-1} = buttonTactDiffSamps;
-else
-    tactorLocsVec = [];
-    tactorLocsVecSamps = [];
-end
+buttonTactDiff = buttonLocs{uniqueCond==-1} - tactorLocsVec;
+buttonTactDiffSamps = buttonLocsSamps{uniqueCond==-1} - tactorLocsVecSamps;
+
+buttonLocs{uniqueCond==-1} = buttonTactDiff;
+buttonLocsSamps{uniqueCond==-1} = buttonTactDiffSamps;
 
 end

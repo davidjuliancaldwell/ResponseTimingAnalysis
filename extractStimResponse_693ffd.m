@@ -62,10 +62,6 @@ condType = condType(1:140);
 stimTimes = bursts(2,:)+delay;
 trainTimes=stimTimes;
 
-% DJC 7-7-2016, changed presamps and post samps to 1 second
-presamps = round(1 * fsData); % pre time in sec
-postsamps = round(1 * fsData); % post time in sec, % modified DJC to look at up to 300 ms after
-
 %% look at all simultaneously
 
 tactorData = tact(:,1);
@@ -86,9 +82,9 @@ respHi = 1;
 
 current_direc = pwd;
 
-%save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+%save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
-clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+%clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fsStim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
 %close all
 

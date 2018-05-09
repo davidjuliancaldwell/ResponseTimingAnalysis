@@ -33,28 +33,10 @@ end
 
 %% load in data of interest
 
-stim = Stim.data;
-fs_stim = Stim.info.SamplingRateHz;
+[stim,sing,tact,fsStim,fsSing,fsData,fsTact] = load_stim_data(Stim,Sing,ECO1,Tact);
 
-clear Stim
+clear Stim Tact Sing
 
-fs_data = ECO1.info.SamplingRateHz;
-
-clear ECO1 ECO2 ECO3
-
-sing = Sing.data;
-fs_sing = Sing.info.SamplingRateHz;
-
-clear Sing
-
-tact = Tact.data;
-fs_tact = Tact.info.SamplingRateHz;
-clear Tact
-
-valu = Valu.data;
-fs_valu = Valu.info.SamplingRateHz;
-
-clear Valu
 
 %% figure out stim times
 % vector of condition type - for first subject, looks like condition type
@@ -64,208 +46,26 @@ clear Valu
 condType = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_condition_primingPilot.txt');
 primedOption = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_primedOption_primingPilot.txt');
 train = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_stimTrainDelivery_primingPilot.txt');
-% stim cue from file
-stimFromFile = tact(:,3);
 
-%
-trainTimes = find(stimFromFile~=0);
+[trainTimesTotal,stimFromFile,trainTimes,primedOption,uniqueCond] = extract_stimulation_times(tact,primedOption);
 
-%%
-% shrink condition type to be 140
-% as the experiment went S1 (110 stims), tactor (30 stims) , then break
+%% extract stimulus data, find delay, and get timing of stimuli
 
-% for this subject, on the 1st/2nd block, seems to only be 139 trials
-% for the 1st block, this dropped a no stim
+[bursts,delay] = extract_stimulus_delivery_primed(stim,sing,condType,primedOption,trainTimes,fsStim,fsSing,plotIt);
 
-
-% pick condition type where stimulation was delivered
-
-uniqueCond = unique(primedOption);
-trainTimesTotal = {};
-
-for i = 1:length(uniqueCond)
-    trainTimesTotal{i} = trainTimes(primedOption==uniqueCond(i));
-end
-
-% just in case - keep these around
-trainTimesCondNoPrime = trainTimes(primedOption==0);
-trainTimesCondPrime = trainTimes(primedOption==1);
-
-
-%% plot stim
-%
-if plotIt
-    figure
-    hold on
-    for i = 1:size(stim,2)
-        
-        t = (0:length(stim)-1)/fs_stim;
-        subplot(3,2,i)
-        plot(t*1e3,stim(:,i))
-        title(sprintf('Channel %d',i))
-        
-    end
-    
-    xlabel('Time (ms)')
-    ylabel('Amplitude (V)')
-    
-end
-stim1 = stim(:,1);
-
-%% Sing looks like the wave to be delivered, with amplitude in uA
-
-
-% 1st stim channel
-Sing1 = sing(:,1);
-% 2nd stim channel
-Sing2 = sing(:,4);
-
-samplesOfPulse = round(2*fs_stim/1e3);
-
-% build a burst table with the timing of stimuli
-bursts = [];
-bursts(1,:) = primedOption;
-bursts(2,:) = trainTimes;
-bursts(3,:) = trainTimes + samplesOfPulse;
-
-% delay loks to be 0.2867 ms from below.
-
-% get the delay in stim times
-
-delay = round(0.2867*fs_stim/1e3);
-
-% plot the appropriately delayed signal
-stimTimesBegin = bursts(2,condType==1)-1+delay;
-stimTimesEnd = bursts(3,condType==1)-1+delay;
-
-% extract data
+%% extract data
 % try and account for delay for the stim times
 stimTimes = bursts(2,:)+delay;
 trainTimes=stimTimes;
 
-% DJC 7-7-2016, changed presamps and post samps to 1 second
-presamps = round(1 * fs_data); % pre time in sec
-postsamps = round(1 * fs_data); % post time in sec, % modified DJC to look at up to 300 ms after
+%% look at all simultaneously
 
-% sampling rate conversion between stim and data
-fac = fs_stim/fs_data;
-
-% find times where stims start in terms of data sampling rate
-sts = round(stimTimes / fac);
-%% look at tactor
-
-% look at button press
-
+tactorData = tact(:,1);
 buttonData = tact(:,2);
-t_button = (0:length(buttonData)-1)/fs_tact;
-figure
-plot(t_button,buttonData);
 
-title('button data')
-
-% look at stim from file saved
-
-t_stimFile = (0:length(stim)-1)/fs_tact;
-figure
-plot(t_stimFile,stimFromFile);
-title('stim from file')
-
-ax1 = subplot(3,1,1);
-plot(t_button,buttonData);
-title('button data')
-
-ax2 = subplot(3,1,2);
-plot(t_stimFile,stimFromFile);
-title('stim from file')
-
-% assuming stim1 here is the channel where stim was being delivered
-ax3 = subplot(3,1,3);
-plot(t_stimFile,stim1);
-title('S1 Stim Channel')
-
-%link axis
-linkaxes([ax1,ax2,ax3],'x')
-
-respLo = 0.100;
-respHi = 1;
-
-% find button data peaks
-
-% set above certain threshold to 0.009
-buttonDataClip = buttonData;
-buttonDataClip(buttonData >= 0.009) = 0.009;
-[buttonPks,buttonLocs] = findpeaks(buttonDataClip,t_button,'MinpeakDistance',2,'Minpeakheight',0.008);
-
-figure
-findpeaks(buttonDataClip,t_button,'MinpeakDistance',2,'Minpeakheight',0.008);
-hold on
-plot(t_stimFile,stimFromFile,'g');
-plot(t_stimFile,stim1,'r');
-
-legend({'Button Data','Button Press Onset Peaks','Stimulation Times From File','S1 stim output'})
-
-% raw button
-%[buttonPks,buttonLocs] = findpeaks(buttonData,t_button,'MinpeakDistance',1.5)
-%findpeaks(buttonData,t_button,'MinpeakDistance',2,'Minpeakheight',10e-3)
-%% QUANTIFY RXN TIME TO CORTICAL STIM
-
-sampsEnd = round(3.5*fs_stim);
-
-% epoched button press
-
-epochedButton = {};
-
-% the last trial of the epoched button press for the null condition is
-% clipped - so omit that one
-
-for i = 1:length(uniqueCond)
-    epochedButton{i} = squeeze(getEpochSignal(buttonDataClip,trainTimesTotal{i},(trainTimesTotal{i} + sampsEnd)));
-end
-
-t_epoch = [0:size(epochedButton{1},1)-1]/fs_stim;
-t_epoch_samps = [0:size(epochedButton{1},1)-1];
-
-
-buttonPks = {};
-buttonLocs = {};
-
-buttonPksSamps = {};
-buttonLocsSamps = {};
-
-buttonPksTempVec = [];
-buttonLocsTempVec = [];
-
-buttonPksTempVecSamps = [];
-buttonLocsTempVecSamps = [];
+analyze_all_inputs_simultaneously(tactorData,buttonData,stim,stimFromFile,fsTact)
 %%
-for i = 1:length(uniqueCond)
-    
-    % for stimulation condititions
-    for j = 1:length(trainTimesTotal{i})
-        [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton{i}(:,j),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
-        [buttonPksTempSamps,buttonLocsTempSamps] = findpeaks(epochedButton{i}(:,j),t_epoch_samps,'NPeaks',1,'Minpeakheight',0.008); % get sample number DJC 10-12-2017
-        
-        if isempty(buttonPksTemp)
-            buttonPksTemp = NaN;
-            buttonLocsTemp = NaN;
-            buttonPksTempSamps = NaN;
-            buttonLocsTempSamps = NaN;
-        end
-        buttonPksTempVec(j) = buttonPksTemp;
-        buttonLocsTempVec(j) = buttonLocsTemp;
-        
-        % do samples too
-        buttonPksTempVecSamps(j) = buttonPksTempSamps;
-        buttonLocsTempVecSamps(j) = buttonLocsTempSamps;
-    end
-    buttonPks{i} = buttonPksTempVec;
-    buttonLocs{i} = buttonLocsTempVec;
-    
-    buttonPksSamps{i} = buttonPksTempVecSamps;
-    buttonLocsSamps{i} = buttonLocsTempVecSamps;
-    
-    
-end
+[buttonLocs,buttonLocsSamps,~,~,tEpoch] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
 
 %%
 % 9-13-2016 - script to compare response times once they've been calculated
@@ -281,7 +81,6 @@ for i = 1:length(uniqueCond)
     buttonLocsThresh{i} = 1e3.*trim(abs(zTrim)<3);
     
 end
-
 
 %% Histogram
 
@@ -388,9 +187,10 @@ c((c(:,6)<0.05),[1 2 6])
 %% save it
 
 current_direc = pwd;
-
-save(fullfile(current_direc, [sid '_Priming_block_' block '.mat']),'buttonLocsSamps',...
-    's','block','sid','primedOption','buttonLocs','t_epoch','stimTimes','fs_stim','epochedButton',...
-    'uniqueCond', 'respLo','respHi');
-
+saveIt = 0;
+if saveIt
+    save(fullfile(current_direc, [sid '_Priming_block_' block '.mat']),'buttonLocsSamps',...
+        's','block','sid','primedOption','buttonLocs','tEpoch','stimTimes','fsStim','epochedButton',...
+        'uniqueCond', 'respLo','respHi');
+end
 
