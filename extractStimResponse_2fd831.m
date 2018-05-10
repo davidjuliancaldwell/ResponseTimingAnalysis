@@ -45,7 +45,11 @@ train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAn
 
 % for this subject, on the 1st/2nd block, seems to only be 139 trials
 % for the 1st block, this dropped a no stim
-condType = condType(1:139);
+if s == 1
+    condType = condType(1:139);
+elseif s == 2
+    condType = condType(1:139);
+end
 
 [trainTimesTotal,stimFromFile,trainTimes,condType,uniqueCond] = extract_stimulation_times(tact,condType);
 
@@ -65,22 +69,25 @@ buttonData = tact(:,2);
 
 analyze_all_inputs_simultaneously(tactorData,buttonData,stim,stimFromFile,fsTact)
 
-%% 
+%%
 respLo = 0.150;
 respHi = 1;
 
 %% quantifying data
 
 [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
-%
+%% get ISI info
 
+[ISICellSamps,ISICellSeconds,ISICondBefore,ISICellSampsNoNuOt,ISICellSecondsNoNuOt,ISIcondBeforeNoNuOt] = get_ISI(condType,uniqueCond,tactorLocsVecSamps,stimFromFile,fsStim,trainTimesTotal,trainTimes);
+%% look at RT vs ISI 
+
+[mdl,mdlNoNuOt] = compare_resp_times_ISI(uniqueCond,buttonLocs,ISICellSecondsNoNuOt,ISICellSeconds);
 %% save it
-
 current_direc = pwd;
 
 %save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
-clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+%clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 
 %close all
 

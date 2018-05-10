@@ -1,8 +1,8 @@
 %% 9-13-2016 - script to compare response times once they've been calculated
 
 % load subject data, need sid still
- block = '1';
-load([sid,'_compareResponse_block_',block,'.mat'])
+ block = '2';
+%load([sid,'_compareResponse_block_',block,'.mat'])
 % set bounds on data, assume rxn time has to be greater than 0.150
 % less than 1 s
 %

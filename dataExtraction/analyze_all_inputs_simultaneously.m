@@ -43,7 +43,7 @@ title('S1 Stim Channel')
 
 %
 ax5 = subplot(5,1,5);
-plot(tStimFile,stim(:,2));
+plot(tStimFile,stim(:,4));
 title('Off Target Stim Channel')
 
 %link axis

@@ -31,8 +31,8 @@ epochedButton = {};
 
 % the last trial of the epoched button press for the null condition is
 % clipped - so omit that one
-
-trainTimesTotal{2}(end) = [];
+%%%%%%%%%%%% djc - 5-8-2018 - c19968 from 2016? 
+%trainTimesTotal{2}(end) = [];
 
 for i = 1:length(uniqueCond)
     epochedButton{i} = squeeze(getEpochSignal(buttonDataClip,trainTimesTotal{i},(trainTimesTotal{i} + sampsEnd)));
