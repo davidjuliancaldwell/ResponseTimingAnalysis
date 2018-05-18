@@ -8,7 +8,7 @@ if plotIt
     for i = 1:size(stim,2)
         
         t = (0:length(stim)-1)/fsStim;
-        subplot(3,2,i)
+        subplot(4,2,i)
         plot(t*1e3,stim(:,i))
         title(sprintf('Channel %d',i))
         
@@ -38,8 +38,6 @@ t = (0:size(stims1,1)-1)/fsSing;
 t = t*1e3;
 
 stims2 = squeeze(getEpochSignal(Sing2,(bursts(2,condType==1)-1),(bursts(3,condType==1))+1));
-t = (0:size(stims1,1)-1)/fsSing;
-t = t*1e3;
 
 if plotIt
     
@@ -50,13 +48,14 @@ if plotIt
     ylim([(min(stims1(:))-100) (max(stims1(:))+100)])
     title('Current to be delivered for all trials  on 1st channel')
     
-    figure
-    plot(t,stims2,'b','linewidth',2)
-    xlabel('Time (ms)');
-    ylabel('Current to be delivered (mA)')
-    ylim([(min(stims2(:))-100) (max(stims2(:))+100)])
-    title('Current to be delivered for all trials  on 2nd channel')
-    
+    if ~isempty(stims2)
+        figure
+        plot(t,stims2,'b','linewidth',2)
+        xlabel('Time (ms)');
+        ylabel('Current to be delivered (mA)')
+        ylim([(min(stims2(:))-100) (max(stims2(:))+100)])
+        title('Current to be delivered for all trials  on 2nd channel')
+    end
 end
 
 %% Plot stims with info from above
@@ -70,8 +69,6 @@ t = t*1e3;
 % 2nd stimulation channel
 stim2= stim(:,4);
 stim2Epoched = squeeze(getEpochSignal(stim2,(bursts(2,condType==1)-1),(bursts(3,condType==1))+1));
-t = (0:size(stim2Epoched,1)-1)/fsStim;
-t = t*1e3;
 
 if plotIt
     figure
@@ -83,12 +80,14 @@ if plotIt
     % hold on
     plot(t,stims1)
     
-    figure
-    plot(t,stim2Epoched)
-    xlabel('Time (ms)');
-    ylabel('Voltage (V)');
-    title('Finding the delay between current output and stim delivery - 2nd stim channel')
-    
+    if ~isempty(stim2Epoched)
+        
+        figure
+        plot(t,stim2Epoched)
+        xlabel('Time (ms)');
+        ylabel('Voltage (V)');
+        title('Finding the delay between current output and stim delivery - 2nd stim channel')
+    end
 end
 
 % get the delay in stim times
@@ -104,7 +103,6 @@ t = t*1e3;
 
 stim2Epoched = squeeze(getEpochSignal(stim2,stimTimesBegin,stimTimesEnd));
 
-
 if plotIt
     
     figure
@@ -113,14 +111,15 @@ if plotIt
     ylabel('Voltage (V)');
     title('Stim voltage monitoring with delay added in - 1st stim channel ')
     
-    
-    % hold on
-    figure
-    plot(t,stim2Epoched)
-    xlabel('Time (ms)');
-    ylabel('Voltage (V)');
-    title('Stim voltage monitoring with delay added in - 2nd stim channel')
-    
+    if ~isempty(stim2Epoched)
+        
+        % hold on
+        figure
+        plot(t,stim2Epoched)
+        xlabel('Time (ms)');
+        ylabel('Voltage (V)');
+        title('Stim voltage monitoring with delay added in - 2nd stim channel')
+    end
 end
 
 

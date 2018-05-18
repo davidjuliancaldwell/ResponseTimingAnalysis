@@ -63,7 +63,7 @@ buttonData = tact(:,2);
 
 analyze_all_inputs_simultaneously(tactorData,buttonData,stim,stimFromFile,fsTact)
 %%
-[buttonLocs,buttonLocsSamps,~,~,tEpoch] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
+[buttonLocs,buttonLocsSamps,~,~,tEpoch,epochedButton] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
 
 %%
 % 9-13-2016 - script to compare response times once they've been calculated
