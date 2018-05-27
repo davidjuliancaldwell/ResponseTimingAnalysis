@@ -28,7 +28,7 @@ cort = 1e3.*buttonLocsVecCort;
 
 current_direc = pwd;
 
-%save(fullfile(current_direc, [sid '_compareResponse.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
+save(fullfile(current_direc, [sid '_compareResponse_tactorSub.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
 
 
 

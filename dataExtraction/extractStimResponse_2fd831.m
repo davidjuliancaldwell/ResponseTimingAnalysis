@@ -6,13 +6,14 @@ Z_ConstantsStimResponse;
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 sid = SIDS{4};
 
-% ui box for input
-list_str = {'1st block','2nd block'};
+% % ui box for input
+% list_str = {'1st block','2nd block'};
+% 
+% [s,v] = listdlg('PromptString','Pick experiment',...
+%     'SelectionMode','single',...
+%     'ListString',list_str);
 
-[s,v] = listdlg('PromptString','Pick experiment',...
-    'SelectionMode','single',...
-    'ListString',list_str);
-
+for s = 1:2
 % load in data
 if (strcmp(sid, '2fd831'))
     folder_data = strcat(DATA_DIR,'\2fd831');
@@ -75,7 +76,7 @@ respHi = 1;
 
 %% quantifying data
 
-[buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
+[buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton,epochedTactor,buttonTactDiffSamps] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
 %% get ISI info
 
 [ISICellSamps,ISICellSeconds,ISICondBefore,ISICellSampsNoNuOt,ISICellSecondsNoNuOt,ISIcondBeforeNoNuOt] = get_ISI(condType,uniqueCond,tactorLocsVecSamps,stimFromFile,fsStim,trainTimesTotal,trainTimes);
@@ -85,10 +86,12 @@ respHi = 1;
 %% save it
 current_direc = pwd;
 
-%save(fullfile(current_direc, [sid '_compareResponse_block_' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','t_epoch','stimTimes','fs_stim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+%save(fullfile(current_direc, [sid '_compareResponse_block_tactorSub' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
 %clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
+save(fullfile(current_direc, [sid '_compareResponse_block_' block '_changePts_tactorSub .mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
 %close all
+end
 
 

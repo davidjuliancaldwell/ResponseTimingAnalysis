@@ -37,9 +37,6 @@ clear Stim Tact Sing
 
 
 %% figure out stim times
-% vector of condition type - for first subject, looks like condition type
-% is what was used , rather than test_condition, BOTH blocks used the same
-% file
 
 condType = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_condition_primingPilot.txt');
 primedOption = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_primedOption_primingPilot.txt');

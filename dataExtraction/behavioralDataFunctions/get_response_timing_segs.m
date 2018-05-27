@@ -1,8 +1,8 @@
-function [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton,epochedTactor] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt)
+function [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton,epochedTactor,buttonTactDiffSamps] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt)
 
 tButton = (0:length(buttonData)-1)/fsTact;
 
-% set above certain threshold to 0.009
+
 buttonDataClip = buttonData;
 buttonDataClip(buttonData >= 0.009) = 0.009;
 [buttonPks,buttonLocs] = findpeaks(buttonDataClip,tButton,'MinpeakDistance',2,'Minpeakheight',0.008);
@@ -31,7 +31,7 @@ epochedButton = {};
 
 % the last trial of the epoched button press for the null condition is
 % clipped - so omit that one
-%%%%%%%%%%%% djc - 5-8-2018 - c19968 from 2016? 
+%%%%%%%%%%%% djc - 5-8-2018 - c19968 from 2016?
 %trainTimesTotal{2}(end) = [];
 
 for i = 1:length(uniqueCond)
@@ -43,17 +43,28 @@ epochedTactor = squeeze(getEpochSignal(tactorData,trainTimesTotal{1},trainTimesT
 tEpoch = [0:size(epochedTactor,1)-1]/fsStim;
 tEpochSamps = [0:size(epochedTactor,1)-1];
 
+% include tactor delay
+useTactorDelay = 1;
 
-buttonPks = {};
+if useTactorDelay
+    tactorDelaySamps = (1.04/1e3)*fsStim; % ms
+    tactorDelaySecs = 1.04/1e3;
+else
+    tactorDelaySamps = 0;
+    tactorDelaySecs = 0;
+end
+
+
+%buttonPks = {};
 buttonLocs = {};
 
-buttonPksSamps = {};
+%buttonPksSamps = {};
 buttonLocsSamps = {};
 
-buttonPksTempVec = [];
+%buttonPksTempVec = [];
 buttonLocsTempVec = [];
 
-buttonPksTempVecSamps = [];
+%buttonPksTempVecSamps = [];
 buttonLocsTempVecSamps = [];
 %%
 for i = 1:length(uniqueCond)
@@ -61,35 +72,65 @@ for i = 1:length(uniqueCond)
     % for stimulation condititions
     if uniqueCond(i)~=-1
         for j = 1:length(trainTimesTotal{i})
-            [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton{i}(:,j),tEpoch,'NPeaks',1,'Minpeakheight',0.008);
-            [buttonPksTempSamps,buttonLocsTempSamps] = findpeaks(epochedButton{i}(:,j),tEpochSamps,'NPeaks',1,'Minpeakheight',0.008); % get sample number DJC 10-12-2017
             
-            if isempty(buttonPksTemp)
-                buttonPksTemp = NaN;
+                        
+            [ipt,residual] = findchangepts((epochedButton{i}(:,j)),'maxnumchanges',2);
+            
+            if isempty(ipt) || max((epochedButton{i}(:,j))) < 8e-3
+                ipt = NaN;
+            end
+          %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+                        buttonLocsTempSamps = ipt(1);
+
+            buttonLocsTemp = buttonLocsTempSamps/fsTact;
+            
+           % figure
+            %findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2)
+            
+            
+            %[%buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton{i}(:,j),tEpoch,'NPeaks',1,'Minpeakheight',0.008);
+            %[%buttonPksTempSamps,buttonLocsTempSamps] = findpeaks(epochedButton{i}(:,j),tEpochSamps,'NPeaks',1,'Minpeakheight',0.008); % get sample number DJC 10-12-2017
+                        sprintf(['button ' num2str(buttonLocsTemp)])
+            sprintf(['button ' num2str(buttonLocsTempSamps)])
+            
+            if isempty(buttonLocsTemp)
+                %buttonPksTemp = NaN;
                 buttonLocsTemp = NaN;
-                buttonPksTempSamps = NaN;
+                %buttonPksTempSamps = NaN;
                 buttonLocsTempSamps = NaN;
             end
-            buttonPksTempVec(j) = buttonPksTemp;
+            %buttonPksTempVec(j) = %buttonPksTemp;
             buttonLocsTempVec(j) = buttonLocsTemp;
             
             % do samples too
-            buttonPksTempVecSamps(j) = buttonPksTempSamps;
+            %buttonPksTempVecSamps(j) = %buttonPksTempSamps;
             buttonLocsTempVecSamps(j) = buttonLocsTempSamps;
         end
-        buttonPks{i} = buttonPksTempVec;
+        %buttonPks{i} = %buttonPksTempVec;
         buttonLocs{i} = buttonLocsTempVec;
         
-        buttonPksSamps{i} = buttonPksTempVecSamps;
+        %buttonPksSamps{i} = %buttonPksTempVecSamps;
         buttonLocsSamps{i} = buttonLocsTempVecSamps;
         
         
         % for tactor target condition
     elseif uniqueCond(i)==-1
         for j = 1:length(trainTimesTotal{i})
+            % set above certain threshold to 0.009
             
-            [buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton{i}(tEpoch>1,j)),tEpoch(tEpoch>1),'NPeaks',1,'Minpeakheight',0.008);
-            [buttonPksTempSamps,buttonLocsTempSamps] = findpeaks((epochedButton{i}(tEpochSamps>24415,j)),tEpochSamps(tEpochSamps>24415),'NPeaks',1,'Minpeakheight',0.008);
+            [ipt,residual] = findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2);
+            if isempty(ipt) || max((epochedButton{i}(tEpoch>1,j))) < 8e-3
+                ipt = NaN;
+            end
+            
+            buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+            buttonLocsTemp = buttonLocsTempSamps/fsTact;
+            
+          %  figure
+         %   findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2)
+            
+            %[%buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton{i}(tEpoch>1,j)),tEpoch(tEpoch>1),'NPeaks',1,'Minpeakheight',0.008);
+            % [%buttonPksTempSamps,buttonLocsTempSamps] = findpeaks((epochedButton{i}(tEpochSamps>24415,j)),tEpochSamps(tEpochSamps>24415),'NPeaks',1,'Minpeakheight',0.008);
             
             sprintf(['button ' num2str(buttonLocsTemp)])
             sprintf(['button ' num2str(buttonLocsTempSamps)])
@@ -100,39 +141,47 @@ for i = 1:length(uniqueCond)
             sprintf(['tactor ' num2str(tactorLocsTemp)])
             sprintf(['tactor ' num2str(tactorLocsTempSamps)])
             
-            if isempty(buttonPksTemp)
-                buttonPksTemp = NaN;
+            if isempty(buttonLocsTemp)
+                %buttonPksTemp = NaN;
                 buttonLocsTemp = NaN;
-                buttonPksTempSamps = NaN;
+                %buttonPksTempSamps = NaN;
                 buttonLocsTempSamps = NaN;
             end
             
-            if isempty(tactorPksTemp)
-                tactorPksTemp = NaN;
+            if isempty(tactorLocsTemp)
+               % %tactorPksTemp = NaN;
                 tactorLocsTemp = NaN;
-                tactorPksTempSamps = NaN;
+                %%tactorPksTempSamps = NaN;
                 tactorLocsTempSamps = NaN;
                 
             end
             
-            buttonPksTempVec(j) = buttonPksTemp;
+            %buttonPksTempVec(j) = %buttonPksTemp;
             buttonLocsTempVec(j) = buttonLocsTemp;
             
             % do samples too
-            buttonPksTempVecSamps(j) = buttonPksTempSamps;
+            %buttonPksTempVecSamps(j) = %buttonPksTempSamps;
             buttonLocsTempVecSamps(j) = buttonLocsTempSamps;
             
-            tactorPksVec(j) = tactorPksTemp;
-            tactorLocsVec(j) = tactorLocsTemp;
+            % account for tactor delay
+            if ~useTactorDelay
+                tactorLocsVec(j) = tactorLocsTemp;
+                tactorLocsVecSamps(j) = tactorLocsTempSamps;
+            else
+                tactorLocsVec(j) = tactorLocsTemp - tactorDelaySecs;
+                tactorLocsVecSamps(j) = tactorLocsTempSamps - tactorDelaySamps;
+            end
             
-            tactorPksVecSamps(j) = tactorPksTempSamps;
-            tactorLocsVecSamps(j) = tactorLocsTempSamps;
+            %tactorPksVec(j) = %tactorPksTemp;
+            %tactorPksVecSamps(j) = %tactorPksTempSamps;
+            
+            
         end
         
-        buttonPks{i} = buttonPksTempVec;
+        %buttonPks{i} = %buttonPksTempVec;
         buttonLocs{i} = buttonLocsTempVec;
         
-        buttonPksSamps{i} = buttonPksTempVecSamps;
+        %buttonPksSamps{i} = %buttonPksTempVecSamps;
         buttonLocsSamps{i} = buttonLocsTempVecSamps;
         
         
@@ -152,6 +201,8 @@ if exist('tactorLocsVec','var')
 else
     tactorLocsVec = [];
     tactorLocsVecSamps = [];
+    buttonTactDiff = [];
+    buttonTactDiffSamps = [];
 end
 
 end

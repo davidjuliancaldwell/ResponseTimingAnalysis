@@ -18,7 +18,7 @@ for i = SIDSint
     %%
     sid = i{:};
     DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
-    load(fullfile([sid 'pooledData.mat']));
+    load(fullfile([sid 'pooledData_tactorSub.mat']));
     fsData = fs_data;
     %% combine the pooled data
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -137,6 +137,11 @@ for i = SIDSint
     end
     
     %%
+    % notch 
+%     for trial = 1:size(processedSig,3)
+%     processedSig(:,:,trial) = notch(squeeze(processedSig(:,:,trial)),[60 120 180 240],fsData); 
+%     end
+    %%
     % visualization
     % of note - more visualizations are created here, including what the
     % templates look like on each channel, and what the discovered templates are
@@ -166,8 +171,9 @@ for i = SIDSint
     dataRef = powerout(:,tMorlet<0,:,:);
     %
     [normalizedData] = normalize_spectrogram(dataRef,powerout);
-    %
-    individual = 0;
+    %%
+    chanIntList = [19 28];
+    individual = 1;
     average = 1;
     for chanInt = chanIntList
         visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
@@ -175,12 +181,18 @@ for i = SIDSint
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    %
+    %%
     vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
     %% hilb amp HG
+    return
+    processedSigHG = zeros(size(processedSig));
+    for trial = 1:size(processedSig,3)
+        [amp] = log(hilbAmp(squeeze(processedSig(:,:,trial)), [70 110], fsData).^2);
+        processedSigHG(:,:,trial) = amp;
+    end
     
-    [amp, phase] = hilbAmp(signal, [70 200], fs)
-    
+vizFunc.small_multiples_time_series(processedSigHG,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',[-40 -20],'modePlot','avg','highlightRange',trainDuration)
+
     
     % sort by rxn time
     %%
