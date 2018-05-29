@@ -18,7 +18,7 @@ DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 %    'SelectionMode','single',...
 %    'ListString',list_str);
 
-for s = 1:3
+for s = 1:2
     % load in data
     if (strcmp(sid, 'acabb1'))
         folder_data = strcat(DATA_DIR,'\acabb1');
@@ -267,16 +267,16 @@ for s = 1:3
         condType = condType(1:120);
         
         % pick condition type where stimulation was delivered
-        if s == 1 
+        if s == 1
             trainTimesCond1 = trainTimes(condType==0);
         elseif s == 2
             trainTimesCond1 = trainTimes(condType==0 | condType==1);
         elseif s == 3
-                    condType = condType(1:26);
-
+            condType = condType(1:26);
+            
             trainTimesCond1 = trainTimes(condType==0);
             trainTimes = trainTimes(1:26);
-
+            
         end
         
         sampsEnd = round(2*fsStim);
@@ -298,20 +298,20 @@ for s = 1:3
         for i = 1:size(epochedButton,2)
             
             
-                      [ipt,residual] = findchangepts((epochedButton(:,i)),'maxnumchanges',2);
+            [ipt,residual] = findchangepts((epochedButton(:,i)),'maxnumchanges',2);
             if isempty(ipt) || max(epochedButton(:,i)) < 8e-3
                 ipt = NaN;
             end
             
-            buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+            buttonLocsTempSamps = ipt(1);
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
-           % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+            % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
             if isempty(buttonLocsTemp)
-            %    buttonPksTemp = NaN;
+                %    buttonPksTemp = NaN;
                 buttonLocsTemp = NaN;
             end
-           % buttonPksVecCort(i) = buttonPksTemp;
+            % buttonPksVecCort(i) = buttonPksTemp;
             buttonLocsVecCort(i) = buttonLocsTemp;
         end
         
@@ -343,26 +343,26 @@ for s = 1:3
         clear buttonLocsTemp tactorLocsTemp;
         
         for i = 1:size(epochedButtonNull,2)
-
-             % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
             
-             [ipt,residual] = findchangepts((epochedButtonNull(:,i)),'maxnumchanges',2);
+            % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+            
+            [ipt,residual] = findchangepts((epochedButtonNull(:,i)),'maxnumchanges',2);
             
             if isempty(ipt) || max((epochedButtonNull(:,i))) < 8e-3
                 ipt = NaN;
             end
-          %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
-                        buttonLocsTempSamps = ipt(1);
-
+            %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+            buttonLocsTempSamps = ipt(1);
+            
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
             
             if isempty(buttonLocsTemp)
-           %     buttonPksTemp = NaN;
+                %     buttonPksTemp = NaN;
                 buttonLocsTemp = NaN;
             end
             
-          %  buttonPksVecCortNull(i) = buttonPksTemp;
+            %  buttonPksVecCortNull(i) = buttonPksTemp;
             buttonLocsVecCortNull(i) = buttonLocsTemp;
         end
         
@@ -429,7 +429,7 @@ for s = 1:3
         
         % vector of pks of tactor press
         
-       % tactorPksVecTact = zeros(size(epochedTactor,2),1);
+        % tactorPksVecTact = zeros(size(epochedTactor,2),1);
         tactorLocsVecTact = zeros(size(epochedTactor,2),1);
         
         clear buttonLocsTemp tactorLocsTemp;
@@ -437,16 +437,16 @@ for s = 1:3
         
         for i = 1:size(epochedButton,2)
             
-                      [ipt,residual] = findchangepts((epochedButton(t_epoch_button>1,i)),'maxnumchanges',2);
+            [ipt,residual] = findchangepts((epochedButton(:,i)),'maxnumchanges',2);
             if isempty(ipt) || max(epochedButton(t_epoch_button>1,i)) < 8e-3
                 ipt = NaN;
             end
             
-            buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+            buttonLocsTempSamps = ipt(1);
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
-           % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch_button,'NPeaks',1,'Minpeakheight',0.008);
-           [tactorPksTemp,tactorLocsTemp] = findpeaks(epochedTactor(:,i),t_epoch_tact,'NPeaks',1,'Minpeakheight',2);
+            % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch_button,'NPeaks',1,'Minpeakheight',0.008);
+            [tactorPksTemp,tactorLocsTemp] = findpeaks(epochedTactor(:,i),t_epoch_tact,'NPeaks',1,'Minpeakheight',2);
             
             if isempty(buttonLocsTemp)
                 %buttonPksTemp = NaN;
@@ -454,13 +454,13 @@ for s = 1:3
             end
             
             if isempty(tactorLocsTemp)
-            %    tactorPksTemp = NaN;
+                %    tactorPksTemp = NaN;
                 tactorLocsTemp = NaN;
             end
             
-          %  buttonPksVecTact(i) = buttonPksTemp;
+            %  buttonPksVecTact(i) = buttonPksTemp;
             buttonLocsVecTact(i) = buttonLocsTemp;
-          %  tactorPksVecTact(i) = tactorPksTemp;
+            %  tactorPksVecTact(i) = tactorPksTemp;
             tactorLocsVecTact(i) = tactorLocsTemp - tactorDelaySecs;
         end
         %%
@@ -508,16 +508,16 @@ for s = 1:3
         clear buttonLocsTemp tactorLocsTemp;
         
         for i = 1:size(epochedButtonNull,2)
-           % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
+            % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
             
-             [ipt,residual] = findchangepts((epochedButtonNull(:,i)),'maxnumchanges',2);
+            [ipt,residual] = findchangepts((epochedButtonNull(:,i)),'maxnumchanges',2);
             
             if isempty(ipt) || max((epochedButton(:,i))) < 8e-3
                 ipt = NaN;
             end
-          %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
-                        buttonLocsTempSamps = ipt(1);
-
+            %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+            buttonLocsTempSamps = ipt(1);
+            
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
             if isempty(buttonLocsTemp)
@@ -541,7 +541,7 @@ for s = 1:3
         
     end
     
-    % clear all variables except the ones that are useful for further
+% % % % % % % %     % clear all variables except the ones that are useful for further
     % iterations
     
     clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR sid

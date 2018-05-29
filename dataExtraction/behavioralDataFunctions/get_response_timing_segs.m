@@ -1,8 +1,6 @@
 function [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton,epochedTactor,buttonTactDiffSamps] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt)
 
 tButton = (0:length(buttonData)-1)/fsTact;
-
-
 buttonDataClip = buttonData;
 buttonDataClip(buttonData >= 0.009) = 0.009;
 [buttonPks,buttonLocs] = findpeaks(buttonDataClip,tButton,'MinpeakDistance',2,'Minpeakheight',0.008);
@@ -73,24 +71,32 @@ for i = 1:length(uniqueCond)
     if uniqueCond(i)~=-1
         for j = 1:length(trainTimesTotal{i})
             
-                        
-            [ipt,residual] = findchangepts((epochedButton{i}(:,j)),'maxnumchanges',2);
+            
+            [ipt,residual] = findchangepts((epochedButton{i}((tEpoch>0.1 & tEpoch<1.5),j)),'maxnumchanges',2);
             
             if isempty(ipt) || max((epochedButton{i}(:,j))) < 8e-3
                 ipt = NaN;
+                
+            elseif length(ipt) >= 2
+                if ipt(2)-ipt(1) < round(fsTact*10/1e3)
+                    ipt = NaN;
+                end
             end
-          %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
-                        buttonLocsTempSamps = ipt(1);
-
+            %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
+            buttonLocsTempSamps = ipt(1)+round(0.1*fsTact);
+            
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
-           % figure
-            %findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2)
+            %            if j == 1
+            %                figure
+            %            end
+            %  findchangepts((epochedButton{i}(:,j)),'maxnumchanges',2)
+            %  findchangepts((epochedButton{i}((tEpoch>0.075 & tEpoch<1.5),j)),'maxnumchanges',2);
             
             
             %[%buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton{i}(:,j),tEpoch,'NPeaks',1,'Minpeakheight',0.008);
             %[%buttonPksTempSamps,buttonLocsTempSamps] = findpeaks(epochedButton{i}(:,j),tEpochSamps,'NPeaks',1,'Minpeakheight',0.008); % get sample number DJC 10-12-2017
-                        sprintf(['button ' num2str(buttonLocsTemp)])
+            sprintf(['button ' num2str(buttonLocsTemp)])
             sprintf(['button ' num2str(buttonLocsTempSamps)])
             
             if isempty(buttonLocsTemp)
@@ -126,8 +132,8 @@ for i = 1:length(uniqueCond)
             buttonLocsTempSamps = ipt(1)+round(1*fsTact);
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
-          %  figure
-         %   findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2)
+            %  figure
+            %   findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2)
             
             %[%buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton{i}(tEpoch>1,j)),tEpoch(tEpoch>1),'NPeaks',1,'Minpeakheight',0.008);
             % [%buttonPksTempSamps,buttonLocsTempSamps] = findpeaks((epochedButton{i}(tEpochSamps>24415,j)),tEpochSamps(tEpochSamps>24415),'NPeaks',1,'Minpeakheight',0.008);
@@ -149,7 +155,7 @@ for i = 1:length(uniqueCond)
             end
             
             if isempty(tactorLocsTemp)
-               % %tactorPksTemp = NaN;
+                % %tactorPksTemp = NaN;
                 tactorLocsTemp = NaN;
                 %%tactorPksTempSamps = NaN;
                 tactorLocsTempSamps = NaN;

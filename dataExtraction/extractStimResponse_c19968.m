@@ -34,7 +34,7 @@ for s = 1:2
         
     end
     
-    plotIt = 1;
+    plotIt = 0;
     
     %% load in data of interest
     
