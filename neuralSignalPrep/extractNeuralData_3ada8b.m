@@ -8,148 +8,158 @@ DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d9\MATLAB_convers
 sid = SIDS{6};
 
 % ui box for input
-list_str = {'1st block','2nd block'};
-
-[s,v] = listdlg('PromptString','Pick experiment',...
-    'SelectionMode','single',...
-    'ListString',list_str);
-
-% load in data
-if (strcmp(sid, '3ada8b'))
-    folder_data = strcat(DATA_DIR,'\2fd831');
-    
-    if s == 1
-        load(fullfile(folder_data,'responseTiming-1.mat'))
-        block = '1';
-    elseif s == 2
-        load(fullfile(folder_data,'responseTiming-2.mat'))
-        block = '2';
-    end
-    
-end
-
-plotIt = 1;
-
-%% neural data
-
-% the eco data is crashing it right now
-clearvars -except ECO1 ECO2 ECO3 Tact sid block s
-eco1 = ECO1.data;
-fsData = ECO1.info.SamplingRateHz;
-ecoFs = fsData;
-clear ECO1
-eco2 = ECO2.data;
-clear ECO2
-
-eco3 = ECO3.data;
-clear ECO3
-
-
-ECoG = [eco1(1:end-1,:) eco2(1:end-1,:) eco3];
-clearvars eco1 eco2 eco3
-
-% only 64 channels grid
-
-% get rid of bad channels
-bads = [79:98];
-goodVec = logical(ones(size(ECoG,2),1));
-goodVec(bads) = 0;
-ECoG = ECoG(:,goodVec);
-
+% list_str = {'1st block','2nd block'};
 %
-load([sid,'_compareResponse_block_',block,'.mat'])
+% [s,v] = listdlg('PromptString','Pick experiment',...
+%     'SelectionMode','single',...
+%     'ListString',list_str);
 
-% get train times
-
-% look at stim from file saved (this is the sample where things were
-% delivered
-tact = Tact.data;
-fsTact = Tact.info.SamplingRateHz;
-stimFromFile = tact(:,3);
-
-% get stimulation times of delivery
-trainTimes = find(stimFromFile~=0);
-
-% convert sample times for eco
-
-convertSamps = fsTact/fsData;
-trainTimesConvert = round(stimTimes/convertSamps);
-stimChans = [1 2 16 24];
-
-%% cortical brain data
-%
-% where to begin plotting with artifact
-%artifact_end = round(0.05*eco_fs);
-artifact_end = 0;
-
-%where to end plotting
-sampsEnd = round(2*ecoFs);
-
-%presamps - where to begin looking for "rest" period (500 ms before?)
-presamps = round(0.5*ecoFs);
-
-trainTimesCell = {};
-trainTimesCellThresh = {};
-
-for i = 1:length(uniqueCond)
-    
-    trainTimesCell{i} = trainTimesConvert(condType==uniqueCond(i));
-    trim = buttonLocs{i};
-    trim = trim(trim>respLo & trim<respHi);
-    zTrim = zscore(trim);
-    if ~isempty(trainTimesCell{i}) % check to make sure not indexing empty cell
-        %trainTimesCellThresh{i} = trainTimesCell{i}(abs(zTrim)<3); % z score
-        % buttonLocsThresh = buttLocs{i}(abs(zTrim)<3);
+for s = 1:2
+    % load in data
+    if (strcmp(sid, '3ada8b'))
+        folder_data = strcat(DATA_DIR,'\3ada8b');
         
-        trainTimesCellThresh{i} = trainTimesCell{i};% no zscore
-        buttonLocsThresh{i} = buttonLocs{i};% no zscore
+        if s == 1
+            load(fullfile(folder_data,'responseTiming-1.mat'))
+            block = '1';
+        elseif s == 2
+            load(fullfile(folder_data,'responseTiming-2.mat'))
+            block = '2';
+        end
         
     end
-end
-
-%% ARTIFACT
-epochedCortEco_cell = {};
-for i = 1:length(uniqueCond)
     
-    condIntAns = uniqueCond(i);
-    condIntAns
-    % ARTIFACT
+    plotIt = 1;
     
-    if (condIntAns == 0 || condIntAns == 1 || condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
+    %% neural data
+    
+    % the eco data is crashing it right now
+    clearvars -except ECO1 ECO2 ECO3 Tact sid block s
+    eco1 = ECO1.data;
+    fsData = ECO1.info.SamplingRateHz;
+    ecoFs = fsData;
+    clear ECO1
+    eco2 = ECO2.data;
+    clear ECO2
+    
+    eco3 = ECO3.data;
+    clear ECO3
+    
+    
+    ECoG = [eco1(1:end-1,:) eco2(1:end-1,:) eco3];
+    clearvars eco1 eco2 eco3
+    
+    % only 64 channels grid
+    
+    % get rid of bad channels
+    bads = [79:98];
+    goodVec = logical(ones(size(ECoG,2),1));
+    goodVec(bads) = 0;
+    ECoG = ECoG(:,goodVec);
+    
+    %
+    load([sid,'_compareResponse_block_',block,'.mat'])
+    
+    % get train times
+    
+    % look at stim from file saved (this is the sample where things were
+    % delivered
+    tact = Tact.data;
+    fsTact = Tact.info.SamplingRateHz;
+    stimFromFile = tact(:,3);
+    
+    % get stimulation times of delivery
+    trainTimes = find(stimFromFile~=0);
+    
+    % convert sample times for eco
+    
+    convertSamps = fsTact/fsData;
+    trainTimesConvert = round(stimTimes/convertSamps);
+    stimChans = [1 2 16 24];
+    
+    %% cortical brain data
+    %
+    % where to begin plotting with artifact
+    %artifact_end = round(0.05*ecoFs);
+    artifact_end = 0;
+    
+    %where to end plotting
+    sampsEnd = round(2*ecoFs);
+    
+    %presamps - where to begin looking for "rest" period (500 ms before?)
+    presamps = round(0.5*ecoFs);
+    
+    trainTimesCell = {};
+    trainTimesCellThresh = {};
+    
+    for i = 1:length(uniqueCond)
         
-        postStim = 2000;
-        sampsPostStim = round(postStim/1e3*ecoFs);
-        
-        preStim = 1000;
-        sampsPreStim = round(preStim/1e3*ecoFs);
-        
-        epochedCortEco = squeeze(getEpochSignal(ECoG,(trainTimesCellThresh{i})-sampsPreStim,(trainTimesCellThresh{i}+ sampsPostStim)));
-        response = buttonLocsThresh{i};
-    elseif condIntAns == -1
-        
-        postStim = 2000;
-        sampsPostStim = round(postStim/1e3*ecoFs);
-        
-        preStim = 1000;
-        sampsPreStim = round(preStim/1e3*ecoFs);
-        
-        %response = buttonLocsThresh{condInt} + tactorLocsVec;
-        response = buttonLocsThresh{i};
-        responseSamps = round(tactorLocsVec*ecoFs);
-        
-        % 11-3-2017 - account for nan's in response_samps vector
-        response_mask = (~isnan(responseSamps));
-        epochedCortEco = squeeze(getEpochSignal(ECoG,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
-        tactData = decimate(Tact.data,2)';
-        epochedTactorNew = squeeze(getEpochSignal(tactData,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
+        trainTimesCell{i} = trainTimesConvert(condType==uniqueCond(i));
+        trim = buttonLocs{i};
+        trim = trim(trim>respLo & trim<respHi);
+        zTrim = zscore(trim);
+        if ~isempty(trainTimesCell{i}) % check to make sure not indexing empty cell
+            %trainTimesCellThresh{i} = trainTimesCell{i}(abs(zTrim)<3); % z score
+            % buttonLocsThresh = buttLocs{i}(abs(zTrim)<3);
+            
+            trainTimesCellThresh{i} = trainTimesCell{i};% no zscore
+            buttonLocsThresh{i} = buttonLocs{i};% no zscore
+            
+        end
     end
     
-    epochedCortEco_cell{i} = epochedCortEco;
+    %% ARTIFACT
+    epochedCortEco_cell = {};
+    for i = 1:length(uniqueCond)
+        
+        condIntAns = uniqueCond(i);
+        condIntAns
+        % ARTIFACT
+        
+        if (condIntAns == 0 || condIntAns == 1 || condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
+            
+            postStim = 2000;
+            sampsPostStim = round(postStim/1e3*ecoFs);
+            
+            preStim = 1000;
+            sampsPreStim = round(preStim/1e3*ecoFs);
+            
+            epochedCortEco = squeeze(getEpochSignal(ECoG,(trainTimesCellThresh{i})-sampsPreStim,(trainTimesCellThresh{i}+ sampsPostStim)));
+            response = buttonLocsThresh{i};
+        elseif condIntAns == -1
+            
+            postStim = 2000;
+            sampsPostStim = round(postStim/1e3*ecoFs);
+            
+            preStim = 1000;
+            sampsPreStim = round(preStim/1e3*ecoFs);
+            
+            %response = buttonLocsThresh{condInt} + tactorLocsVec;
+            response = buttonLocsThresh{i};
+            responseSamps = round(tactorLocsVec*ecoFs);
+            
+            % 11-3-2017 - account for nan's in response_samps vector
+            response_mask = (~isnan(responseSamps));
+            
+            adjustTact = 1;
+            if adjustTact  == 1
+                responseSamps = responseSamps - (ecoFs*9/1e3);
+            end
+            
+            
+            epochedCortEco = squeeze(getEpochSignal(ECoG,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
+            tactData = decimate(Tact.data,2)';
+            epochedTactorNew = squeeze(getEpochSignal(tactData,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
+        end
+        
+        epochedCortEco_cell{i} = epochedCortEco;
+    end
+    tEpoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
+    
+    return
 end
-tEpoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
-
 %%
- % ui box for input
+% ui box for input
 prompt = {'Channel of interest?','condition'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
@@ -195,7 +205,7 @@ if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
     meanSub = 1;
     %
     % [subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
-    %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
+    %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,ecoFs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
     
     orderPoly = 6;
     [processedSig,~,~,~,t] = ...
@@ -233,7 +243,7 @@ elseif (condIntAns == -1)
     %2fd831
     %lnFreqs = [60 120 180 240 300 360 420 480 540];
     %order = 3;
-   % processedSig = notch(processedSig,lnFreqs,ecoFs,order);
+    % processedSig = notch(processedSig,lnFreqs,ecoFs,order);
     
 end
 %%
@@ -710,4 +720,3 @@ figure
 t_epoch = [0:size(epochedButton,1)-1]/fs_stim;
 plot(t_epoch,epochedButton);
 
-%% tactor brain data

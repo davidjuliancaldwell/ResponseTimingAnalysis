@@ -1,4 +1,4 @@
-function [] = analyze_all_inputs_simultaneously(tactorData,buttonData,stim,stimFromFile,fsTact)
+function [] = analyze_all_inputs_simultaneously_tactorOnly(tactorData,buttonData,stim,stimFromFile,fsTact)
 
 tTact = (0:length(tactorData)-1)/fsTact;
 figure

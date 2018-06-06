@@ -5,40 +5,21 @@ Z_ConstantsStimResponse;
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d10\MATLAB_conversions\3ada8b_TOJ';
 sid = SIDS{6};
 
-% load in data
-% ui box for input
-list_str = {'1st block','2nd block'};
-
-[s,v] = listdlg('PromptString','Pick experiment',...
-    'SelectionMode','single',...
-    'ListString',list_str);
-
 folder_data = strcat(DATA_DIR);
-if s == 1
     load(fullfile(folder_data,'TOJ-1.mat'))
-    block = '1';
-elseif s == 2
-    load(fullfile(folder_data,'TOJ-2.mat'))
-    block = '2';
-end
+    load(fullfile(folder_data,'TOJ-1_TOJ.mat'))
 %%
 % load in data of interest
-if s == 1
     stim = Stim.data;
-else
-    stim = [stim; Stim.data];
-end
+
 fsStim = Stim.info.SamplingRateHz;
 
 clear Stim
 
 clear ECO1 ECO2 ECO3
 
-if s ==1
     tact = Tact.data;
-else
-    tact = [tact; Tact.data];
-end
+
 fsTact = Tact.info.SamplingRateHz;
 clear Tact
 
@@ -63,9 +44,11 @@ end
 %%
 [epochedTactor,epochedAudio,epochedStim,epochedButton,t,tSamps] = extract_epochs_TOJ(stim,tact,trainTimes,fsStim);
 % epoched button press
+
+return
 %%
-load
-whichPerceived = 
+%load
+%whichPerceived = 
 %%
 numTrials = size(epochedAudio,2);
 

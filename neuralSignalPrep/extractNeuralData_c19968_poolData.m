@@ -9,9 +9,9 @@ addpath('./scripts')
 DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
 sid = SIDS{2};
 
-s_vec = [1,2];
+sVec = [1,2];
 
-for s = s_vec
+for s = sVec
     
     % load in data
     if (strcmp(sid, 'c19968'))
@@ -35,10 +35,10 @@ for s = s_vec
     end
     
     %% neural data
-    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR s s_vec folder_data epochedCortEco_cell
+    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR s sVec folder_data epochedCortEco_cell
     eco1 = ECO1.data;
-    fs_data = ECO1.info.SamplingRateHz;
-    eco_fs = fs_data;
+    fsData = ECO1.info.SamplingRateHz;
+    ecoFs = fsData;
     clear ECO1
     eco2 = ECO2.data;
     clear ECO2
@@ -78,14 +78,14 @@ for s = s_vec
     % look at stim from file saved (this is the sample where things were
     % delivered
     tact = Tact.data;
-    fs_tact = Tact.info.SamplingRateHz;
+    fsTact = Tact.info.SamplingRateHz;
     stimFromFile = tact(:,3);
     
     % get stimulation times of delivery
     trainTimes = find(stimFromFile~=0);
     
     % convert sample times for eco
-    convertSamps = fs_tact/fs_data;
+    convertSamps = fsTact/fsData;
     
     trainTimesConvert = round(stimTimes/convertSamps);
     
@@ -115,28 +115,34 @@ for s = s_vec
         
         if (condIntAns == 100 || condIntAns == 200 || condIntAns == 400 || condIntAns == 800)
             
-            post_stim = 2000;
-            samps_post_stim = round(post_stim/1e3*eco_fs);
+            postStim = 2000;
+            sampsPostStim = round(postStim/1e3*ecoFs);
             
-            pre_stim = 1000;
-            samps_pre_stim = round(pre_stim/1e3*eco_fs);
+            preStim = 1000;
+            sampsPreStim = round(preStim/1e3*ecoFs);
             
-            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i})-samps_pre_stim,(trainTimesCellThresh{i}+ samps_post_stim)));
+            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i})-sampsPreStim,(trainTimesCellThresh{i}+ sampsPostStim)));
             response = buttonLocsThresh{i};
         end
         
         if condIntAns == -1
             
-            post_stim = 2000;
-            samps_post_stim = round(post_stim/1e3*eco_fs);
+            postStim = 2000;
+            sampsPostStim = round(postStim/1e3*ecoFs);
             
-            pre_stim = 1000;
-            samps_pre_stim = round(pre_stim/1e3*eco_fs);
+            preStim = 1000;
+            sampsPreStim = round(preStim/1e3*ecoFs);
             
             %response = buttonLocsThresh{condInt} + tactorLocsVec;
             response = buttonLocsThresh{i};
-            response_samps = round(tactorLocsVec*eco_fs);
-            epochedCortEco = squeeze(getEpochSignal(data,((trainTimesCellThresh{i}+response_samps)-samps_pre_stim),((trainTimesCellThresh{i}+response_samps)+ samps_post_stim)));
+            responseSamps = round(tactorLocsVec*ecoFs);
+            
+            adjustTact = 1;
+            if adjustTact  == 1
+                responseSamps = responseSamps - (ecoFs*9/1e3);
+            end
+            
+            epochedCortEco = squeeze(getEpochSignal(data,((trainTimesCellThresh{i}+responseSamps)-sampsPreStim),((trainTimesCellThresh{i}+responseSamps)+ sampsPostStim)));
             
             
         end
@@ -144,11 +150,11 @@ for s = s_vec
         epochedCortEco_cell{s}{i} = epochedCortEco;  
     end
     
-    t_epoch = (-samps_pre_stim:samps_post_stim-1)/eco_fs;
+    tEpoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
 end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData_tactorSub.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fsData','tEpoch');
 
 return

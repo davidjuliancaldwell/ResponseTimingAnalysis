@@ -116,44 +116,50 @@ for s = s_vec
         
         if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
             
-            post_stim = 2000;
-            samps_post_stim = round(post_stim/1e3*eco_fs);
+            postStim = 2000;
+            sampsPostStim = round(postStim/1e3*eco_fs);
             
-            pre_stim = 1000;
-            samps_pre_stim = round(pre_stim/1e3*eco_fs);
+            preStim = 1000;
+            sampsPreStim = round(preStim/1e3*eco_fs);
             
-            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i})-samps_pre_stim,(trainTimesCellThresh{i}+ samps_post_stim)));
+            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i})-sampsPreStim,(trainTimesCellThresh{i}+ sampsPostStim)));
             response = buttonLocsThresh{i};
         end
         
         if condIntAns == -1
             
-            post_stim = 2000;
-            samps_post_stim = round(post_stim/1e3*eco_fs);
+            postStim = 2000;
+            sampsPostStim = round(postStim/1e3*eco_fs);
             
-            pre_stim = 1000;
-            samps_pre_stim = round(pre_stim/1e3*eco_fs);
+            preStim = 1000;
+            sampsPreStim = round(preStim/1e3*eco_fs);
             
             %response = buttonLocsThresh{condInt} + tactorLocsVec;
             response = buttonLocsThresh{i};
-            response_samps = round(tactorLocsVec*eco_fs);
+            responseSamps = round(tactorLocsVec*eco_fs);
+            
+                   adjustTact = 1;
+            if adjustTact  == 1
+                responseSamps = responseSamps - (ecoFs*9/1e3);
+            end
+            
             
             % 11-3-2017 - account for nan's in response_samps vector
-            response_mask = (~isnan(response_samps));
+            response_mask = (~isnan(responseSamps));
             
-            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i}(response_mask)+response_samps(response_mask)-samps_pre_stim),(trainTimesCellThresh{i}(response_mask)+response_samps(response_mask)+ samps_post_stim)));
+            epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
             
         end
         
         epochedCortEco_cell{s}{i} = epochedCortEco;
     end
-    t_epoch = (-samps_pre_stim:samps_post_stim-1)/eco_fs;
+    t_epoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
     
 end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData_tactorSub.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
 
 return
 

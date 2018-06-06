@@ -11,20 +11,26 @@ Z_ConstantsStimResponse;
 % 3 - 693ffd
 % 4 - 2fd831
 % 5 - a1355e
-SIDSint = {'c19968','693ffd','2fd831'};
-SIDSint = {'693ffd'};
+SIDSint = {'c19968','693ffd','2fd831','a1355e'};
+SIDSblocked = {'c19968','693ffd','2fd831'};
+SIDSprimed = {'a1355e'};
+SIDSint = {'c19968'};
 %%
 for i = SIDSint
     %%
     sid = i{:};
-    DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
-    load(fullfile([sid 'pooledData_tactorSub.mat']));
+    DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\pooled_RT_data';
+    load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
     fsData = fs_data;
     %% combine the pooled data
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data(sid,epochedCortEco_cell,t_epoch);
-    
+    if any(strcmp(SIDSblocked,sid))
+        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data(sid,epochedCortEco_cell,t_epoch);
+    elseif any(strcmp(SIDSprimed,sid))
+        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,t_epoch);
+        
+    end
     % additional parameters
     postStim = 2000;
     sampsPostStim = round(postStim/1e3*fs_data);
@@ -39,15 +45,15 @@ for i = SIDSint
             stimChans = [9 17 50 58];
             chanIntList = [1 10 51 42];
             chanInt = 10;
-            
+            uniqueCond = [-1 0 1 2 3 4 5];
         case '693ffd'
-            chanInt = 17;
+            chanInt = 19;
             stimChans = [20 29];
             chanIntList = [21 28 19 36 44 43 30];
         case '2fd831'
             stimChans = [1 9 24 42];
             chanInt = 10;
-            chanIntList = [2 10 51 42];
+            chanIntList = [2 10 51];
             
     end
     
@@ -69,7 +75,7 @@ for i = SIDSint
     %post = 0.4096; % in ms
     
     pre = 0.8; % started with 1
-    post = 0.6; % started with 0.2
+    post = 0.8; % started with 0.2, last was 0.6
     % 2.8, 1, 0.5 was 3/19/2018
     
     % these are the metrics used if the dictionary method is selected. The
@@ -78,7 +84,7 @@ for i = SIDSint
     
     distanceMetricDbscan = 'cosine';
     distanceMetricSigMatch = 'eucl';
-    amntPreAverage = 3;
+    amntPreAverage = 5; % was three
     normalize = 'preAverage';
     %normalize = 'firstSamp';
     
@@ -103,7 +109,7 @@ for i = SIDSint
     buttonLocsInt = buttonLocs{condInt};
     %%%%%%%%%%%%%%%%%%
     if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
-        meanSub = 1;
+        meanSub = 0;
         %orderPoly = 6;
         orderPoly = 3; %10-12-2017 - djc change
         if meanSub == 1
@@ -120,7 +126,7 @@ for i = SIDSint
         stimTime = zeros(size(processedSig,3),1); % it is centered around zero now
         
     elseif (condIntAns == -1)
-        meanSub = 1;
+        meanSub = 0;
         %orderPoly = 6;
         orderPoly = 3; %10-12-2017 - djc change
         if meanSub == 1
@@ -129,6 +135,8 @@ for i = SIDSint
             end
         else
             processedSig = dataInt;
+            
+            
         end
         
         %stimTime = 1e3*tactorLocsVec; %
@@ -136,11 +144,29 @@ for i = SIDSint
         t = t_epoch;
     end
     
+    response = response(~isnan(response));
+    responseBool = (response > 0.15 & response<1);
+    % responseBool = logical(ones(size(response)))
+    response = response(responseBool);
+    % only take ones where they responded within time bins
+    processedSig = processedSig(:,:,responseBool);
+    
+    rerefMode = 'mean';
+    if strcmp(sid,'c19968')
+        badChannels = [stimChans [29 32] [64:size(processedSig,2)]];
+    elseif strcmp(sid,'693ffd')
+    badChannels = [stimChans [53:64]];
+    elseif strcmp(sid,'2fd831')
+        badChannels = stimChans;
+    end
+    
+    processedSig = rereference_CAR_median(processedSig,rerefMode,badChannels);
+    
     %%
-    % notch 
-%     for trial = 1:size(processedSig,3)
-%     processedSig(:,:,trial) = notch(squeeze(processedSig(:,:,trial)),[60 120 180 240],fsData); 
-%     end
+    % notch
+    %     for trial = 1:size(processedSig,3)
+    %     processedSig(:,:,trial) = notch(squeeze(processedSig(:,:,trial)),[60 120 180 240],fsData);
+    %     end
     %%
     % visualization
     % of note - more visualizations are created here, including what the
@@ -158,7 +184,7 @@ for i = SIDSint
     %%
     %%%%%% PLV
     freqRange = [8 12];
-    [plv] = plvWrapper(processedSig,fsData,freqRange,stimChans);
+    %[plv] = plvWrapper(processedSig,fsData,freqRange,stimChans);
     %%
     %%%%%%% wavelet
     timeRes = 0.01; % 25 ms bins
@@ -168,31 +194,70 @@ for i = SIDSint
     %
     tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
     % normalize data
-    dataRef = powerout(:,tMorlet<0,:,:);
+    dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
     %
     [normalizedData] = normalize_spectrogram(dataRef,powerout);
     %%
-    chanIntList = [19 28];
     individual = 1;
     average = 1;
+   % chanIntLIst = 42;
+
+    % chanIntList = chanInt;
     for chanInt = chanIntList
         visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
             tEpoch,dataInt,chanInt,stimTime,response,individual,average)
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    HGPowerWavelet = squeeze(mean(squeeze(normalizedData(fMorlet < 150 & fMorlet > 70,:,:,:)),1));
+    
     %%
     vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
     %% hilb amp HG
-    return
     processedSigHG = zeros(size(processedSig));
     for trial = 1:size(processedSig,3)
-        [amp] = log(hilbAmp(squeeze(processedSig(:,:,trial)), [70 110], fsData).^2);
+        [amp] = log(hilbAmp(squeeze(processedSig(:,:,trial)), [70 150], fsData).^2);
         processedSigHG(:,:,trial) = amp;
     end
-    
-vizFunc.small_multiples_time_series(processedSigHG,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',[-40 -20],'modePlot','avg','highlightRange',trainDuration)
+    %%
+    chanInt = 1;
+    figure
+    subplot(2,1,1)
+    plot(1e3*tEpoch,squeeze(mean(squeeze(processedSigHG(:,chanInt,:)),2)))
+    xlabel('time (ms)')
+    ylabel('power (log(HG amplitude squared)')
+    xlim([-50 500])
+    vline(0)
+        set(gca,'fontsize',14)
 
+    title(['hilbert HG amplitude - channel ' num2str(chanInt)])
+    subplot(2,1,2)
+    plot(1e3*tMorlet,mean(squeeze(HGPowerWavelet(:,chanInt,:)),2))
+    xlim([-50 500])
+    vline(0)
+    xlabel('time (ms)')
+    ylabel('power normalized to baseline')
+    title(['average wavelet amplitude - channel ' num2str(chanInt)])
+    set(gca,'fontsize',14)
+    %%
+    figure
+    trials = 1:size(HGPowerWavelet,3);
+    time = tMorlet;
+    tLow = -0.2;
+    tHigh = 0.5;
+    imagesc(1e3*tMorlet(tMorlet>tLow & tMorlet < tHigh),trials,squeeze(HGPowerWavelet((tMorlet>tLow & tMorlet < tHigh),chanInt,:))')
+    colormap(flipud(bone))
+    axis('normal')
+    ylabel('trial')
+    xlabel('time (ms)')
+    colorbar()
+    title('average wavelet HG amplitude')
+        set(gca,'fontsize',14)
+
+    %%
+    vizFunc.small_multiples_time_series(processedSigHG,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',[-40 -20],'modePlot','avg','highlightRange',trainDuration)
+    
+    return
     
     % sort by rxn time
     %%

@@ -37,8 +37,8 @@ end
 % the eco data is crashing it right now
 clearvars -except ECO1 ECO2 ECO3 Tact sid block s
 eco1 = ECO1.data;
-fs_data = ECO1.info.SamplingRateHz;
-eco_fs = fs_data;
+fsData = ECO1.info.SamplingRateHz;
+ecoFs = fsData;
 clear ECO1
 eco2 = ECO2.data;
 clear ECO2
@@ -70,7 +70,7 @@ trainTimes = find(stimFromFile~=0);
 
 % convert sample times for eco
 
-convertSamps = fs_tact/fs_data;
+convertSamps = fs_tact/fsData;
 
 trainTimesConvert = round(stimTimes/convertSamps);
 
@@ -92,10 +92,10 @@ condInt = find(uniqueCond==condIntAns);
 artifact_end = 0;
 
 %where to end plotting
-sampsEnd = round(2*eco_fs);
+sampsEnd = round(2*ecoFs);
 
 %presamps - where to begin looking for "rest" period (500 ms before?)
-presamps = round(0.5*eco_fs);
+presamps = round(0.5*ecoFs);
 
 trainTimesCell = {};
 trainTimesCellThresh = {};
@@ -119,16 +119,16 @@ end
 % ARTIFACT
 
 post_stim = 2000;
-samps_post_stim = round(post_stim/1e3*eco_fs);
+samps_post_stim = round(post_stim/1e3*ecoFs);
 
 pre_stim = 1000;
-samps_pre_stim = round(pre_stim/1e3*eco_fs);
+samps_pre_stim = round(pre_stim/1e3*ecoFs);
 
 epochedCortEco = squeeze(getEpochSignal(data,(trainTimesCellThresh{condInt})-samps_pre_stim,(trainTimesCellThresh{condInt}+ samps_post_stim)));
 
 response = buttonLocsThresh{condInt};
 %t_epoch = [1:size(epochedCortEco,1)]/eco_fs;
-t_epoch = (-samps_pre_stim:samps_post_stim-1)/eco_fs;
+t_epoch = (-samps_pre_stim:samps_post_stim-1)/ecoFs;
 
 exampChan = mean(squeeze(epochedCortEco(:,chanInt,:)),2);
 
@@ -140,6 +140,6 @@ title(['Subject ' sid ' Channel ' num2str(chanInt) ' Condition ' num2str(condInt
 %clear exampChan
 
 dataInt = epochedCortEco;
-fs_data = eco_fs; 
+fsData = ecoFs; 
 stimChans = [16 24];
 save('a1355e_examplePriming_Prime_low.mat','dataInt','fs_data','t_epoch','stimChans')

@@ -60,7 +60,7 @@ stimChans = [1 2 16 24];
 %% cortical brain data
 %
 % where to begin plotting with artifact
-%artifact_end = round(0.05*eco_fs);
+%artifact_end = round(0.05*ecoFs);
 artifact_end = 0;
 
 %where to end plotting
@@ -120,6 +120,13 @@ for i = 1:length(uniqueCond)
         
         % 11-3-2017 - account for nan's in response_samps vector
         response_mask = (~isnan(responseSamps));
+        
+        adjustTact = 1;
+        if adjustTact  == 1
+            responseSamps = responseSamps - (ecoFs*9/1e3);
+        end
+        
+        
         epochedCortEco = squeeze(getEpochSignal(ECoG,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
         tactData = decimate(Tact.data,2)';
         epochedTactorNew = squeeze(getEpochSignal(tactData,(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)-sampsPreStim),(trainTimesCellThresh{i}(response_mask)+responseSamps(response_mask)+ sampsPostStim)));
@@ -130,7 +137,7 @@ end
 tEpoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
 
 %%
- % ui box for input
+% ui box for input
 prompt = {'Channel of interest?','condition'};
 dlg_title = 'Channel of Interest';
 num_lines = 1;
@@ -176,7 +183,7 @@ if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
     meanSub = 1;
     %
     % [subtracted_sig_matrixS_I, subtracted_sig_cellS_I,recon_artifact_matrix,recon_artifact,t] = ...
-    %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,eco_fs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
+    %     ica_artifact_remove_train(t_epoch,epochedCortEco,stimChans,ecoFs,scale_factor,numComponentsSearch,plotIt,chanInt,meanSub);
     
     orderPoly = 6;
     [processedSig,~,~,~,t] = ...
@@ -214,7 +221,7 @@ elseif (condIntAns == -1)
     %2fd831
     %lnFreqs = [60 120 180 240 300 360 420 480 540];
     %order = 3;
-   % processedSig = notch(processedSig,lnFreqs,ecoFs,order);
+    % processedSig = notch(processedSig,lnFreqs,ecoFs,order);
     
 end
 %%
@@ -691,4 +698,3 @@ figure
 t_epoch = [0:size(epochedButton,1)-1]/fs_stim;
 plot(t_epoch,epochedButton);
 
-%% tactor brain data

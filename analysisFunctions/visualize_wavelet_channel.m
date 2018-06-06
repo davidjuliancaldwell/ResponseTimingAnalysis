@@ -20,12 +20,13 @@ if individual
         xlim([-200 1000]);
         set(gca,'fontsize',14)
         colormap(CT);
-        set_colormap_threshold(gcf, [-0.5 0.5], [-6 6], [.5 .5 .5])
+        set_colormap_threshold(gcf, [0 0], [-6 6], [1 1 1])
         hold on
         plot3([stimTime(i),stimTime(i)],[0 300],[1000,1000],'r','linewidth',2)
         plot3([1e3*response(i),1e3*response(i)],[0 300],[1000,1000],'g','linewidth',2)
         
         ylim([1 200])
+        colorbar()
         
         h1 = subplot(3,1,2);
         plot(1e3*tEpoch,1e6*processedSig(:,chanInt,i))
@@ -74,13 +75,14 @@ if average
     xlim([-200 1000]);
     set(gca,'fontsize',14)
     colormap(CT);
-    set_colormap_threshold(gcf, [-0.5 0.5], [-6 6], [.5 .5 .5])
+    set_colormap_threshold(gcf, [-0 0 ], [-6 6], [1 1 1])
     hold on
     plot3([mean(stimTime),mean(stimTime)],[0 300],[1000,1000],'r','linewidth',2)
     plot3([1e3*mean(response),1e3*mean(response)],[0 300],[1000,1000],'g','linewidth',2)
-    
+    hold on
+
     ylim([1 200])
-    %   colorbar;
+    colorbar;
     % vline(stimTime(i),'r','stim')
     %   vline(1e3*response(i),'g','response')
     
