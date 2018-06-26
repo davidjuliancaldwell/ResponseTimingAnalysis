@@ -1,9 +1,10 @@
 function [] = visualize_wavelet_channel(powerout,tMorlet,fMorlet,processedSig,tEpoch,dataInt,chanInt,stimTime,response,individual,average)
 % set colormap using cbrewer
-CT = cbrewer('div','RdBu',11);
+%CT = cbrewer('div','RdBu',11);
 % flip it so red is increase, blue is down
-CT = flipud(CT);
-
+%CT = flipud(CT);
+load('america');
+CT = cm;
 if individual
     
     for i = 1:size(powerout,4)
@@ -100,7 +101,7 @@ if average
     ylim_h1 = ylims;
     xlim([-200 1000]);
     vline(mean(stimTime),'r','stim')
-    vline(1e3*mean(response),'g','response')
+   % vline(1e3*mean(response),'g','response')
     
     set(gca,'fontsize',14)
     
@@ -113,7 +114,7 @@ if average
     xlim([-200 1000]);
     set(gca,'fontsize',14);
     vline(mean(stimTime),'r','stim')
-    vline(1e3*mean(response),'g','response')
+    %vline(1e3*mean(response),'g','response')
     
     linkaxes([h3,h4],'xy');
 end

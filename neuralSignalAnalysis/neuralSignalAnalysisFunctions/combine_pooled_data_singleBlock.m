@@ -1,11 +1,11 @@
-function [buttonLocsSampsCell,buttonLocsCell,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,tEpoch)
+function [buttonLocsSampsCell,buttonLocsCell,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,tEpoch,fileName)
 
 buttonLocsSampsCellInd = {};
 buttonlocsSamps_cell = {};
 data = {};
 tEpochGood = tEpoch;
 
-    load([sid,'_compareResponse_changePts_tactorSub .mat'])
+    load(fileName)
     
     buttonLocsSampsCellInd = buttonLocsSamps; % samples
     buttonLocsCellInd = buttonLocs; % seconds

@@ -14,13 +14,24 @@ Z_ConstantsStimResponse;
 SIDSint = {'c19968','693ffd','2fd831','a1355e'};
 SIDSblocked = {'c19968','693ffd','2fd831'};
 SIDSprimed = {'a1355e'};
-SIDSint = {'c19968'};
+SIDSint = {'a1355e'};
+primedBlock = 2;
+reref = 0;
 %%
 for i = SIDSint
     %%
     sid = i{:};
-    DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\pooled_RT_data';
-    load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
+    if sum(strcmp(sid,SIDSprimed)) == 0
+        DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\pooled_RT_data';
+        load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
+    elseif sum(strcmp(sid,SIDSprimed)) == 1
+        DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\priming_data';
+        load(fullfile(DATA_DIR,[sid '_priming_neural_block_' num2str(primedBlock) '.mat']));
+        t_epoch = tEpoch;
+        fs_data = fsData;
+        behaviorFileName = [sid '_priming_behavior_block_' num2str(primedBlock) '.mat'];
+    end
+    
     fsData = fs_data;
     %% combine the pooled data
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,8 +39,7 @@ for i = SIDSint
     if any(strcmp(SIDSblocked,sid))
         [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data(sid,epochedCortEco_cell,t_epoch);
     elseif any(strcmp(SIDSprimed,sid))
-        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,t_epoch);
-        
+        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,t_epoch,behaviorFileName);
     end
     % additional parameters
     postStim = 2000;
@@ -54,6 +64,10 @@ for i = SIDSint
             stimChans = [1 9 24 42];
             chanInt = 10;
             chanIntList = [2 10 51];
+        case 'a1355e'
+            stimChans = [16 24];
+            chanIntList = [8 7 14 15 22 23 31 32];
+            chanInt = 23;
             
     end
     
@@ -77,6 +91,7 @@ for i = SIDSint
     pre = 0.8; % started with 1
     post = 0.8; % started with 0.2, last was 0.6
     % 2.8, 1, 0.5 was 3/19/2018
+    post = 0.6;
     
     % these are the metrics used if the dictionary method is selected. The
     % options are 'eucl', 'cosine', 'corr', for either euclidean distance,
@@ -85,18 +100,23 @@ for i = SIDSint
     distanceMetricDbscan = 'cosine';
     distanceMetricSigMatch = 'eucl';
     amntPreAverage = 5; % was three
+    amntPreAverage = 3;
     normalize = 'preAverage';
     %normalize = 'firstSamp';
     
     recoverExp = 0;
     %%
-    % condIntAns
+    % condIntAns for RT task
     % -1 = tactor
     %  0 = null
     %  1 = off-target
     %  2-5 = conditions 1->4
     
-    condInt = 1;
+    % condIntAns for priming
+    % 0 - unprimed
+    % 1 - primed
+    
+    condInt = 2;
     condIntAns = uniqueCond(condInt);
     dataInt = data{condInt};
     response = buttonLocs{condInt};
@@ -106,9 +126,13 @@ for i = SIDSint
         dataInt = cat(2,dataInt,zeros(size(dataInt,1),64-size(dataInt,2),size(dataInt,3)));
     end
     
+    if strcmp(sid,'a1355e')
+        dataInt = (dataInt(:,1:64,:));
+    end
+    
     buttonLocsInt = buttonLocs{condInt};
     %%%%%%%%%%%%%%%%%%
-    if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5)
+    if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5 || condIntAns == 0 || condIntAns == 1)
         meanSub = 0;
         %orderPoly = 6;
         orderPoly = 3; %10-12-2017 - djc change
@@ -155,12 +179,16 @@ for i = SIDSint
     if strcmp(sid,'c19968')
         badChannels = [stimChans [29 32] [64:size(processedSig,2)]];
     elseif strcmp(sid,'693ffd')
-    badChannels = [stimChans [53:64]];
+        badChannels = [stimChans [53:64]];
     elseif strcmp(sid,'2fd831')
+        badChannels = stimChans;
+    elseif strcmp(sid,'a1355e')
         badChannels = stimChans;
     end
     
-    processedSig = rereference_CAR_median(processedSig,rerefMode,badChannels);
+    if reref
+        processedSig = rereference_CAR_median(processedSig,rerefMode,badChannels);
+    end
     
     %%
     % notch
@@ -198,10 +226,10 @@ for i = SIDSint
     %
     [normalizedData] = normalize_spectrogram(dataRef,powerout);
     %%
-    individual = 1;
+    individual = 0;
     average = 1;
-   % chanIntLIst = 42;
-
+    % chanIntLIst = 42;
+    
     % chanIntList = chanInt;
     for chanInt = chanIntList
         visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
@@ -220,7 +248,7 @@ for i = SIDSint
         processedSigHG(:,:,trial) = amp;
     end
     %%
-    chanInt = 1;
+    %chanInt = 1;
     figure
     subplot(2,1,1)
     plot(1e3*tEpoch,squeeze(mean(squeeze(processedSigHG(:,chanInt,:)),2)))
@@ -228,8 +256,8 @@ for i = SIDSint
     ylabel('power (log(HG amplitude squared)')
     xlim([-50 500])
     vline(0)
-        set(gca,'fontsize',14)
-
+    set(gca,'fontsize',14)
+    
     title(['hilbert HG amplitude - channel ' num2str(chanInt)])
     subplot(2,1,2)
     plot(1e3*tMorlet,mean(squeeze(HGPowerWavelet(:,chanInt,:)),2))
@@ -252,8 +280,8 @@ for i = SIDSint
     xlabel('time (ms)')
     colorbar()
     title('average wavelet HG amplitude')
-        set(gca,'fontsize',14)
-
+    set(gca,'fontsize',14)
+    
     %%
     vizFunc.small_multiples_time_series(processedSigHG,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',[-40 -20],'modePlot','avg','highlightRange',trainDuration)
     

@@ -53,7 +53,7 @@ tactLocsSamps = round(tactLocsSamps/2);
 
 % adjust 10 ms?
 
-adjust = 1;
+adjust = 0;
 
 if adjust
     
@@ -146,44 +146,30 @@ subplot(2,1,1)
 plot(1e3*tEpoch,squeeze(mean(squeeze(processedSigHG(:,chanInt,:)),2)))
 xlabel('time (ms)')
 ylabel('power (log(HG amplitude squared)')
-xlim([-50 500])
+xlim([-500 500])
 vline(0)
 title(['hilbert HG amplitude - channel ' num2str(chanInt)])
 subplot(2,1,2)
 plot(1e3*tMorlet,mean(squeeze(HGPowerWavelet(:,chanInt,:)),2))
-xlim([-200 500])
+xlim([-500 500])
 vline(0)
 xlabel('time (ms)')
 ylabel('power normalized to baseline')
 title(['average wavelet amplitude - channel ' num2str(chanInt)])
-
-%%
-figure
-trials = 1:size(HGPowerWavelet,3);
-time = tMorlet;
-tLow = -0.2;
-tHigh = 1;
-imagesc(tMorlet(tMorlet>tLow & tMorlet < tHigh),trials,squeeze(HGPowerWavelet((tMorlet>tLow & tMorlet < tHigh),chanInt,:))')
-colormap('jet')
-axis('normal')
-ylabel('trial')
-xlabel('time')
-colorbar()
-title('average wavelet HG amplitude')
-
-figure
-trials = 1:size(HGPowerWavelet,3);
-time = tMorlet;
-tLow = -0.2;
-tHigh = 1;
-imagesc(tEpoch(tEpoch>tLow & tEpoch < tHigh),trials,squeeze(HGPowerWavelet((tMorlet>tLow & tMorlet < tHigh),chanInt,:))')
-colormap('jet')
-axis('normal')
-ylabel('trial')
-xlabel('time')
-colorbar()
-title('average wavelet HG amplitude')
-
+    %%
+    figure
+    trials = 1:size(HGPowerWavelet,3);
+    time = tMorlet;
+    tLow = -0.2;
+    tHigh = 0.5;
+    imagesc(1e3*tMorlet(tMorlet>tLow & tMorlet < tHigh),trials,squeeze(HGPowerWavelet((tMorlet>tLow & tMorlet < tHigh),chanInt,:))')
+    colormap(flipud(bone))
+    axis('normal')
+    ylabel('trial')
+    xlabel('time (ms)')
+    colorbar()
+    title('average wavelet HG amplitude')
+        set(gca,'fontsize',14)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 return
