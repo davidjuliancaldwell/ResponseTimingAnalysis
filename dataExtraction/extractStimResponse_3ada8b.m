@@ -94,7 +94,7 @@ for s = 1:2
         current_direc = pwd;
         
         %save(fullfile(current_direc, [sid '_compareResponse_block_tactorSub' block '.mat']),'buttonLocsSamps','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
-        save(fullfile(current_direc, [sid '_compareResponse_block_' block '_changePts_tactorSub .mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+        save(fullfile(current_direc, [sid '_compareResponse_block_' block '_changePts_noDelay.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
         
         clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fsStim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
         

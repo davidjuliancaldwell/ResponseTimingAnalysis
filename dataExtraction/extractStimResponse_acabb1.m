@@ -285,8 +285,8 @@ for s = 1:2
         epochedButton = squeeze(getEpochSignal(buttonDataClip,trainTimesCond1,(trainTimesCond1 + sampsEnd)));
         
         figure
-        t_epoch = [0:size(epochedButton,1)-1]/fsStim;
-        plot(t_epoch,epochedButton);
+        tEpoch = [0:size(epochedButton,1)-1]/fsStim;
+        plot(tEpoch,epochedButton);
         
         % vector of pks of button press
         
@@ -295,15 +295,22 @@ for s = 1:2
         
         clear buttonLocsTemp tactorLocsTemp;
         
+             buttonStart = 0.1;
+        buttonEnd = 2.5;
+        
         for i = 1:size(epochedButton,2)
             
             
-            [ipt,residual] = findchangepts((epochedButton(:,i)),'maxnumchanges',2);
-            if isempty(ipt) || max(epochedButton(:,i)) < 8e-3
+            [ipt,residual] = findchangepts((epochedButton(tEpoch>buttonStart & tEpoch<buttonEnd,i)),'maxnumchanges',2);
+            if isempty(ipt) || max(epochedButton(tEpoch>buttonStart & tEpoch<buttonEnd,i)) < 8e-3
                 ipt = NaN;
+            elseif length(ipt) >= 2
+                if ipt(2)-ipt(1) < round(fsTact*5/1e3)
+                    ipt = NaN;
+                end
             end
             
-            buttonLocsTempSamps = ipt(1);
+            buttonLocsTempSamps = ipt(1)+round(buttonStart*fsTact);
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
             % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
@@ -332,8 +339,8 @@ for s = 1:2
         epochedButtonNull = squeeze(getEpochSignal(buttonDataClip,trainTimesNull,(trainTimesNull + sampsEnd)));
         
         figure
-        t_epoch = [0:size(epochedButtonNull,1)-1]/fsStim;
-        plot(t_epoch,epochedButtonNull);
+        tEpoch = [0:size(epochedButtonNull,1)-1]/fsStim;
+        plot(tEpoch,epochedButtonNull);
         
         % vector of pks of button press
         
@@ -342,17 +349,22 @@ for s = 1:2
         
         clear buttonLocsTemp tactorLocsTemp;
         
+   
         for i = 1:size(epochedButtonNull,2)
             
             % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButtonNull(:,i),t_epoch,'NPeaks',1,'Minpeakheight',0.008);
             
-            [ipt,residual] = findchangepts((epochedButtonNull(:,i)),'maxnumchanges',2);
+            [ipt,residual] = findchangepts((epochedButtonNull(tEpoch>buttonStart&tEpoch<buttonEnd,i)),'maxnumchanges',2);
             
-            if isempty(ipt) || max((epochedButtonNull(:,i))) < 8e-3
+            if isempty(ipt) || max((epochedButtonNull(tEpoch>buttonStart&tEpoch<buttonEnd,i))) < 8e-3
                 ipt = NaN;
+            elseif length(ipt) >= 2
+                if ipt(2)-ipt(1) < round(fsTact*5/1e3)
+                    ipt = NaN;
+                end
             end
             %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
-            buttonLocsTempSamps = ipt(1);
+            buttonLocsTempSamps = ipt(1)+round(buttonStart*fsTact);
             
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
@@ -380,7 +392,7 @@ for s = 1:2
     % get epochs for button press, with start being onset of stimulation marker
     
     % include tactor delay
-    useTactorDelay = 1;
+    useTactorDelay = 0;
     
     if useTactorDelay
         tactorDelaySamps = (1.04/1e3)*fsStim; % ms
@@ -407,8 +419,8 @@ for s = 1:2
         % different sample end for tactor and button to account for double
         % delay
         
-        sampsEndButton = round(3*fsStim);
-        sampsEndTactor = round(2*fsStim);
+        sampsEndButton = round(3.5*fsStim);
+        sampsEndTactor = round(3.5*fsStim);
         
         % epoched button press
         epochedButton = squeeze(getEpochSignal(buttonDataClip,trainTimesCond1,(trainTimesCond1 + sampsEndButton)));
@@ -417,10 +429,10 @@ for s = 1:2
         epochedTactor = squeeze(getEpochSignal(tactorData,trainTimesCond1,(trainTimesCond1 + sampsEndTactor)));
         
         figure
-        t_epoch_button = [0:size(epochedButton,1)-1]/fsStim;
-        t_epoch_tact = [0:size(epochedTactor,1)-1]/fsStim;
+        tEpochButton = [0:size(epochedButton,1)-1]/fsStim;
+        tEpochTact = [0:size(epochedTactor,1)-1]/fsStim;
         
-        plot(t_epoch_button,epochedButton);
+        plot(tEpochButton,epochedButton);
         
         % vector of pks of button press
         
@@ -434,19 +446,26 @@ for s = 1:2
         
         clear buttonLocsTemp tactorLocsTemp;
         
-        
+        buttonStart = 0;
         for i = 1:size(epochedButton,2)
             
-            [ipt,residual] = findchangepts((epochedButton(:,i)),'maxnumchanges',2);
-            if isempty(ipt) || max(epochedButton(t_epoch_button>1,i)) < 8e-3
+            [ipt,residual] = findchangepts((epochedButton(tEpochButton>buttonStart,i)),'maxnumchanges',2);
+            if isempty(ipt) || max(epochedButton(tEpochButton>buttonStart,i)) < 8e-3
                 ipt = NaN;
+            elseif length(ipt) >= 2
+                if ipt(2)-ipt(1) < round(fsTact*5/1e3)
+                    ipt = NaN;
+                end
             end
             
-            buttonLocsTempSamps = ipt(1);
+%                              figure
+%                           findchangepts((epochedButton(tEpochButton>buttonStart,i)),'maxnumchanges',2)
+%             
+            buttonLocsTempSamps = ipt(1)+round(buttonStart*fsTact);
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
             % [buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton(:,i),t_epoch_button,'NPeaks',1,'Minpeakheight',0.008);
-            [tactorPksTemp,tactorLocsTemp] = findpeaks(epochedTactor(:,i),t_epoch_tact,'NPeaks',1,'Minpeakheight',2);
+            [tactorPksTemp,tactorLocsTemp] = findpeaks(epochedTactor(:,i),tEpochTact,'NPeaks',1,'Minpeakheight',2);
             
             if isempty(buttonLocsTemp)
                 %buttonPksTemp = NaN;
@@ -494,8 +513,8 @@ for s = 1:2
         epochedButtonNull = squeeze(getEpochSignal(buttonDataClip,trainTimesNull,(trainTimesNull + sampsEndButton)));
         
         figure
-        t_epoch = [0:size(epochedButtonNull,1)-1]/fsStim;
-        plot(t_epoch,epochedButtonNull);
+        tEpoch = [0:size(epochedButtonNull,1)-1]/fsStim;
+        plot(tEpoch,epochedButtonNull);
         
         % vector of pks of button press
         
@@ -512,8 +531,13 @@ for s = 1:2
             
             [ipt,residual] = findchangepts((epochedButtonNull(:,i)),'maxnumchanges',2);
             
-            if isempty(ipt) || max((epochedButton(:,i))) < 8e-3
+            if isempty(ipt) || max((epochedButtonNull(:,i))) < 8e-3
                 ipt = NaN;
+                
+            elseif length(ipt) >= 2
+                if ipt(2)-ipt(1) < round(fsTact*5/1e3)
+                    ipt = NaN;
+                end
             end
             %  buttonLocsTempSamps = ipt(1)+round(1*fsTact);
             buttonLocsTempSamps = ipt(1);
@@ -541,7 +565,7 @@ for s = 1:2
         
     end
     
-% % % % % % % %     % clear all variables except the ones that are useful for further
+    % % % % % % % %     % clear all variables except the ones that are useful for further
     % iterations
     
     clearvars -except buttonTactDiff buttonLocsVectTact tactorLocsVecTact buttonLocsVecCort respLo respHi SIDS DATA_DIR sid
@@ -572,4 +596,4 @@ current_direc = pwd;
 
 %save(fullfile(current_direc, [sid '_compareResponse_tactorSub.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
 
-save(fullfile(current_direc, [sid '_compareResponse_changePts_tactorSub .mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
+save(fullfile(current_direc, [sid '_compareResponse_changePts_noDelay.mat']), 'tactor', 'difference', 'cort','tactorLocsVecTactTrim','buttonTactDiffTrim','buttonLocsVecCortTrim','buttonLocsVecCort','tactorLocsVecTact','buttonTactDiff','respLo','respHi');
