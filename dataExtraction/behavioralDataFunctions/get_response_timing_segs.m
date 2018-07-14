@@ -95,15 +95,15 @@ for i = 1:length(uniqueCond)
             %            if j == 1
             %                figure
             %            end
-            %             if i == 5
-            %                 %             figure
-            %                 %              findchangepts((epochedButton{i}(:,j)),'maxnumchanges',2)
-            %                 figure
-            %                 plot(tEpoch((tEpoch>0.075 & tEpoch<1.5)),(epochedButton{i}((tEpoch>0.075 & tEpoch<1.5),j)))
-            %                 figure
-            %                 findchangepts((epochedButton{i}((tEpoch>0.075 & tEpoch<2),j)),'maxnumchanges',2);
-            %             end
-            
+%                         if i == 5
+%                                         figure
+%                                          findchangepts((epochedButton{i}(:,j)),'maxnumchanges',2)
+%                             figure
+%                             plot(tEpoch((tEpoch>0.075 & tEpoch<1.5)),(epochedButton{i}((tEpoch>0.075 & tEpoch<1.5),j)))
+%                             figure
+%                             findchangepts((epochedButton{i}((tEpoch>0.075 & tEpoch<2),j)),'maxnumchanges',2);
+%                         end
+%             
             %[%buttonPksTemp,buttonLocsTemp] = findpeaks(epochedButton{i}(:,j),tEpoch,'NPeaks',1,'Minpeakheight',0.008);
             %[%buttonPksTempSamps,buttonLocsTempSamps] = findpeaks(epochedButton{i}(:,j),tEpochSamps,'NPeaks',1,'Minpeakheight',0.008); % get sample number DJC 10-12-2017
             sprintf(['button ' num2str(buttonLocsTemp)])

@@ -13,7 +13,7 @@ sid = SIDS{6};
 %     'SelectionMode','single',...
 %     'ListString',list_str);
 
-for s = 1:2
+for s = 1:1
     % load in data
     if (strcmp(sid, '3ada8b'))
         
@@ -88,7 +88,7 @@ for s = 1:2
     
    % [mdl,mdlNoNuOt] = compare_resp_times_ISI(uniqueCond,buttonLocs,ISICellSecondsNoNuOt,ISICellSeconds);
     %% save it
-    saveIt = 1;
+    saveIt = 0;
     
     if saveIt
         current_direc = pwd;

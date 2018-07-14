@@ -15,6 +15,7 @@ SIDSint = {'c19968','693ffd','2fd831','a1355e'};
 SIDSblocked = {'c19968','693ffd','2fd831'};
 SIDSprimed = {'a1355e'};
 SIDSint = {'a1355e'};
+SIDSint = {'693ffd'};
 primedBlock = 2;
 reref = 0;
 %%
@@ -88,7 +89,7 @@ for i = SIDSint
     %pre = 0.4096; % in ms
     %post = 0.4096; % in ms
     
-    pre = 0.6; % started with 1
+    pre = 0.8; % started with 1
     post = 0.8; % started with 0.2, last was 0.6
     % 2.8, 1, 0.5 was 3/19/2018
     post = 0.8;
@@ -98,11 +99,11 @@ for i = SIDSint
     % cosine similarity, or correlation for clustering and template matching.
     
     distanceMetricDbscan = 'cosine';
-    distanceMetricSigMatch = 'cosine';
+    distanceMetricSigMatch = 'eucl';
     amntPreAverage = 5; % was three
-    amntPreAverage = 5;
+    amntPreAverage = 3;
     normalize = 'preAverage';
-    %normalize = 'firstSamp';
+ %  normalize = 'firstSamp';
     
     recoverExp = 0;
     %%
@@ -115,7 +116,7 @@ for i = SIDSint
     % condIntAns for priming
     % 0 - unprimed
     % 1 - primed
-    for condInt = 1:2
+    for condInt = 6:6
      %   condInt = 2;
         condIntAns = uniqueCond(condInt);
         dataInt = data{condInt};
@@ -168,14 +169,14 @@ for i = SIDSint
             t = t_epoch;
         end
         
-        response = response(~isnan(response));
+      %  response = response(~isnan(response));
         responseBool = (response > 0.15 & response<1);
-        % responseBool = logical(ones(size(response)))
+         responseBool = logical(ones(size(response)));
         response = response(responseBool);
         % only take ones where they responded within time bins
         processedSig = processedSig(:,:,responseBool);
         
-        rerefMode = 'mean';
+        rerefMode = 'none';
         if strcmp(sid,'c19968')
             badChannels = [stimChans [29 32] [64:size(processedSig,2)]];
         elseif strcmp(sid,'693ffd')
