@@ -191,4 +191,5 @@ for s = 1:2
             'uniqueCond', 'respLo','respHi');
     end
     clearvars buttonLocsSamps primedOption buttonLocs tEpoch stimTimes fsStim epochedButton uniqueCond respLo respHi
+
 end

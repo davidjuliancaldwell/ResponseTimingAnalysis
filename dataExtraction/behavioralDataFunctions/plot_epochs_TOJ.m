@@ -10,7 +10,11 @@ for i = 1:numTrials
     plot(t,epochedTactor(:,i),'linewidth',2)
     plot(t,epochedAudio(:,i),'linewidth',2)
     plot(t,epochedButton(:,i),'linewidth',2)
-    title(whichPerceived{i})
+    if iscell(whichPerceived)
+        title(whichPerceived{i})
+    else
+        title(whichPerceived(i))
+    end
     xlabel('time (s)')
     ylim([-6 6])
 end

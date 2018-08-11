@@ -20,7 +20,7 @@ for s = 1:2
     elseif s == 2
         load(fullfile(folder_data,'TOJ-2.mat'))
         block = '2';
-        ECoG = [ECoG; cat(2,ECO1.data,ECO2.data,ECO3.data)];
+        ECoG = 4*[ECoG; cat(2,ECO1.data,ECO2.data,ECO3.data)];
         %stim = [stim; Stim.data];
         ecoFs = ECO1.info.SamplingRateHz;
        % fsStim = Stim.info.SamplingRateHz;

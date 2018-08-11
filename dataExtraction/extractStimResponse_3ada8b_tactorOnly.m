@@ -7,7 +7,7 @@ DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d10\MATLAB_conver
 sid = SIDS{6};
 %
 % ui box for input
-list_str = {'1st block','2nd block'};
+list_str = {'tactor + audio ','tactor'};
 
 [s,v] = listdlg('PromptString','Pick experiment',...
     'SelectionMode','single',...
@@ -76,7 +76,7 @@ clear ECO3
 data = [eco1 eco2 eco3];
 clearvars eco1 eco2 eco3
 
-data = data(:,1:64);
+data = 4*data(:,1:64);
 
 %%
 
@@ -113,12 +113,12 @@ dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %%
 individual = 0;
 average = 1;
-chanIntList = [3 4 5 12 13];
+chanIntList = [1 2 3 4 5 12 13 30 33];
 %chanIntList = 3;
 trainDuration = [];
 modePlot = 'avg';
 xlims = [-200 1000];
-ylims = [-40 40];
+ylims = [-160 160];
 vizFunc.small_multiples_time_series(processedSig,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 %%
