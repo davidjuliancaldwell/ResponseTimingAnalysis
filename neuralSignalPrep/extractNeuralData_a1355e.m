@@ -26,7 +26,7 @@ eco3 = ECO3.data;
 clear ECO3
 
 
-ECoG = [eco1(1:end-1,:) eco2(1:end-1,:) eco3];
+ECoG = 4*[eco1(1:end-1,:) eco2(1:end-1,:) eco3];
 clearvars eco1 eco2 eco3
 
 % only 64 channels grid

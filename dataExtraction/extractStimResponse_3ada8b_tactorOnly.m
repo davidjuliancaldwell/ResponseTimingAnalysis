@@ -87,13 +87,13 @@ sampsPostStim = round(postStim/1e3*fsData);
 preStim = 1000;
 sampsPreStim = round(preStim/1e3*fsData);
 tEpoch = round([-sampsPreStim:sampsPostStim-1])/fsData;
-epochedCortEco = squeeze(getEpochSignal(data,tactLocsSamps-sampsPreStim,tactLocsSamps+ sampsPostStim));
+epochedCortEcoTactor = squeeze(getEpochSignal(data,tactLocsSamps-sampsPreStim,tactLocsSamps+ sampsPostStim));
 stimTime = zeros(length(tactLocsSamps),1);
 rerefMode = 'mean';
 badChannels = [];
 response = zeros(length(tactLocsSamps),1);
 stimChans = [];
-processedSig = rereference_CAR_median(epochedCortEco,rerefMode,badChannels);
+processedSigTactor = rereference_CAR_median(epochedCortEcoTactor,rerefMode,badChannels);
 
 tactorEpoched = squeeze(getEpochSignal(decimate(tactorDataClip,2),tactLocsSamps-sampsPreStim,tactLocsSamps+ sampsPostStim));
 
@@ -103,13 +103,13 @@ tactorEpoched = squeeze(getEpochSignal(decimate(tactorDataClip,2),tactLocsSamps-
 timeRes = 0.01; % 25 ms bins
 
 % [powerout,fMorlet,tMorlet] = wavelet_wrapper(processedSig,fsData,stimChans);
-[powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,fsData,timeRes,stimChans);
+[poweroutTactor,fMorlet,tMorlet,~] = waveletWrapper(processedSigTactor,fsData,timeRes,stimChans);
 %
 tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
 % normalize data
-dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
+dataRefTactor = poweroutTactor(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %
-[normalizedData] = normalize_spectrogram(dataRef,powerout);
+[normalizedDataTactor] = normalize_spectrogram(dataRefTactor,poweroutTactor);
 %%
 individual = 0;
 average = 1;
@@ -119,24 +119,24 @@ trainDuration = [];
 modePlot = 'avg';
 xlims = [-200 1000];
 ylims = [-160 160];
-vizFunc.small_multiples_time_series(processedSig,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+vizFunc.small_multiples_time_series(processedSigTactor,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 %%
 % chanIntList = chanInt;
 for chanInt = chanIntList
-    visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
-        tEpoch,epochedCortEco,chanInt,stimTime,response,individual,average)
+    visualize_wavelet_channel(normalizedDataTactor,tMorlet,fMorlet,processedSigTactor,...
+        tEpoch,epochedCortEcoTactor,chanInt,stimTime,response,individual,average)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-HGPowerWavelet = squeeze(mean(squeeze(normalizedData(fMorlet < 150 & fMorlet > 70,:,:,:)),1));
+HGPowerWaveletTactor = squeeze(mean(squeeze(normalizedDataTactor(fMorlet < 150 & fMorlet > 70,:,:,:)),1));
 
 %%
-vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
+vizFunc.small_multiples_spectrogram(normalizedDataTactor,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
 %% hilb amp HG
-processedSigHG = zeros(size(processedSig));
-for trial = 1:size(processedSig,3)
-    [amp] = log(hilbAmp(squeeze(processedSig(:,:,trial)), [70 150], fsData).^2);
+processedSigHG = zeros(size(processedSigTactor));
+for trial = 1:size(processedSigTactor,3)
+    [amp] = log(hilbAmp(squeeze(processedSigTactor(:,:,trial)), [70 150], fsData).^2);
     processedSigHG(:,:,trial) = amp;
 end
 %%
@@ -150,26 +150,26 @@ xlim([-500 500])
 vline(0)
 title(['hilbert HG amplitude - channel ' num2str(chanInt)])
 subplot(2,1,2)
-plot(1e3*tMorlet,mean(squeeze(HGPowerWavelet(:,chanInt,:)),2))
+plot(1e3*tMorlet,mean(squeeze(HGPowerWaveletTactor(:,chanInt,:)),2))
 xlim([-500 500])
 vline(0)
 xlabel('time (ms)')
 ylabel('power normalized to baseline')
 title(['average wavelet amplitude - channel ' num2str(chanInt)])
-    %%
-    figure
-    trials = 1:size(HGPowerWavelet,3);
-    time = tMorlet;
-    tLow = -0.2;
-    tHigh = 0.5;
-    imagesc(1e3*tMorlet(tMorlet>tLow & tMorlet < tHigh),trials,squeeze(HGPowerWavelet((tMorlet>tLow & tMorlet < tHigh),chanInt,:))')
-    colormap(flipud(bone))
-    axis('normal')
-    ylabel('trial')
-    xlabel('time (ms)')
-    colorbar()
-    title('average wavelet HG amplitude')
-        set(gca,'fontsize',14)
+%%
+figure
+trials = 1:size(HGPowerWaveletTactor,3);
+time = tMorlet;
+tLow = -0.2;
+tHigh = 0.5;
+imagesc(1e3*tMorlet(tMorlet>tLow & tMorlet < tHigh),trials,squeeze(HGPowerWaveletTactor((tMorlet>tLow & tMorlet < tHigh),chanInt,:))')
+colormap(flipud(bone))
+axis('normal')
+ylabel('trial')
+xlabel('time (ms)')
+colorbar()
+title('average wavelet HG amplitude')
+set(gca,'fontsize',14)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 return
@@ -212,7 +212,7 @@ respHi = 1;
 
 % [mdl,mdlNoNuOt] = compare_resp_times_ISI(uniqueCond,buttonLocs,ISICellSecondsNoNuOt,ISICellSeconds);
 %% save it
-saveIt = 1;
+saveIt = 0;
 
 if saveIt
     current_direc = pwd;

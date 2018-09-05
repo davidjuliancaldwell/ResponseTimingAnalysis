@@ -139,7 +139,7 @@ trainDuration = [];
 modePlot = 'avg';
 xlims = [-200 1000];
 ylims = [-300 300];
-vizFunc.small_multiples_time_series(processedSig,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 %%
 % chanIntList = chanInt;

@@ -11,12 +11,15 @@ Z_ConstantsStimResponse;
 % 3 - 693ffd
 % 4 - 2fd831
 % 5 - a1355e
+% 6 - 3ada8b
 SIDSint = {'c19968','693ffd','2fd831','a1355e'};
 SIDSblocked = {'c19968','693ffd','2fd831'};
-SIDSprimed = {'a1355e'};
-SIDSint = {'a1355e'};
-SIDSint = {'693ffd'};
-primedBlock = 2;
+SIDSprimed = {'a1355e','3ada8b'};
+
+% 3ada8b has been multiplied by 4 in the neural analysis prep
+SIDSint = {'3ada8b'};
+
+primedBlock = 1;
 reref = 0;
 %%
 for i = SIDSint
@@ -30,7 +33,12 @@ for i = SIDSint
         load(fullfile(DATA_DIR,[sid '_priming_neural_block_' num2str(primedBlock) '.mat']));
         t_epoch = tEpoch;
         fs_data = fsData;
-        behaviorFileName = [sid '_priming_behavior_block_' num2str(primedBlock) '.mat'];
+        if strcmp(sid,'a1355e')
+            behaviorFileName = [sid '_priming_behavior_block_' num2str(primedBlock) '.mat'];
+        elseif strcmp(sid,'3ada8b')
+            behaviorFileName =  ([sid,'_compareResponse_block_',num2str(primedBlock),'.mat']);
+        end
+        
     end
     
     fsData = fs_data;
@@ -69,6 +77,10 @@ for i = SIDSint
             stimChans = [16 24];
             chanIntList = [8 7 14 15 22 23 31 32];
             chanInt = 23;
+        case '3ada8b'
+            stimChans = [4 3 24 32];
+            chanInt = 11;
+            chanIntList = [1 2 3 4 5 12 13 30 33 53 54 61];
             
     end
     
@@ -89,21 +101,24 @@ for i = SIDSint
     %pre = 0.4096; % in ms
     %post = 0.4096; % in ms
     
-    pre = 0.8; % started with 1
+    pre = 0.5; % started with 1
     post = 0.8; % started with 0.2, last was 0.6
     % 2.8, 1, 0.5 was 3/19/2018
     post = 0.8;
+    post = 1;
+    
+    % before 8.31.2018 was 0.8
     
     % these are the metrics used if the dictionary method is selected. The
     % options are 'eucl', 'cosine', 'corr', for either euclidean distance,
     % cosine similarity, or correlation for clustering and template matching.
     
     distanceMetricDbscan = 'cosine';
-    distanceMetricSigMatch = 'eucl';
+    distanceMetricSigMatch = 'cosine';
     amntPreAverage = 5; % was three
     amntPreAverage = 3;
     normalize = 'preAverage';
- %  normalize = 'firstSamp';
+    %  normalize = 'firstSamp';
     
     recoverExp = 0;
     %%
@@ -116,8 +131,8 @@ for i = SIDSint
     % condIntAns for priming
     % 0 - unprimed
     % 1 - primed
-    for condInt = 6:6
-     %   condInt = 2;
+    for condInt = 7:7
+        %   condInt = 2;
         condIntAns = uniqueCond(condInt);
         dataInt = data{condInt};
         response = buttonLocs{condInt};
@@ -127,13 +142,13 @@ for i = SIDSint
             dataInt = cat(2,dataInt,zeros(size(dataInt,1),64-size(dataInt,2),size(dataInt,3)));
         end
         
-        if strcmp(sid,'a1355e')
+        if strcmp(sid,'a1355e') || strcmp(sid,'3ada8b')
             dataInt = (dataInt(:,1:64,:));
         end
         
         buttonLocsInt = buttonLocs{condInt};
         %%%%%%%%%%%%%%%%%%
-        if (condIntAns == 2 || condIntAns == 3 || condIntAns == 4 || condIntAns == 5 || condIntAns == 0 || condIntAns == 1)
+        if (condIntAns >= 0)
             meanSub = 0;
             %orderPoly = 6;
             orderPoly = 3; %10-12-2017 - djc change
@@ -142,7 +157,6 @@ for i = SIDSint
                     dataInt(:,i,:) = polyfit_subtract(squeeze(dataInt(:,i,:)),orderPoly);
                 end
             end
-            
             
             [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(dataInt,'type',type,...
                 'fs',fsData,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
@@ -169,14 +183,15 @@ for i = SIDSint
             t = t_epoch;
         end
         
-      %  response = response(~isnan(response));
+        %  response = response(~isnan(response));
         responseBool = (response > 0.15 & response<1);
-         responseBool = logical(ones(size(response)));
+        responseBool = logical(ones(size(response)));
+        
         response = response(responseBool);
         % only take ones where they responded within time bins
         processedSig = processedSig(:,:,responseBool);
         
-        rerefMode = 'none';
+        rerefMode = 'mean';
         if strcmp(sid,'c19968')
             badChannels = [stimChans [29 32] [64:size(processedSig,2)]];
         elseif strcmp(sid,'693ffd')
@@ -185,18 +200,37 @@ for i = SIDSint
             badChannels = stimChans;
         elseif strcmp(sid,'a1355e')
             badChannels = stimChans;
+        elseif strcmp(sid,'3ada8b')
+            badChannels = [stimChans [65:128]];
         end
         
         if reref
             processedSig = rereference_CAR_median(processedSig,rerefMode,badChannels);
         end
         
+        processedSigReref = rereference_CAR_median(processedSig,rerefMode,badChannels);
+        
+                % small multiples
+       
+        individual = 0;
+        average = 1;
+        %chanIntList = 3;
+        trainDuration = [];
+        modePlot = 'avg';
+        xlims = [-200 1000];
+        ylims = [-300 300];
+        vizFunc.small_multiples_time_series(processedSig,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+        
+        vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+        
         %%
+        %
+        %
         % notch
         %     for trial = 1:size(processedSig,3)
         %     processedSig(:,:,trial) = notch(squeeze(processedSig(:,:,trial)),[60 120 180 240],fsData);
         %     end
-        %%
+        %
         % visualization
         % of note - more visualizations are created here, including what the
         % templates look like on each channel, and what the discovered templates are
@@ -206,8 +240,10 @@ for i = SIDSint
             tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
             'chanIntList',chanIntList,'modePlot','confInt')
         
-        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        
+
+        
         %% wavelet and plv
         
         %%

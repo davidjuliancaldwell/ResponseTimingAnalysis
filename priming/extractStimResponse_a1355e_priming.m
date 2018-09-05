@@ -15,7 +15,7 @@ plotIt = 1;
 %     'SelectionMode','single',...
 %     'ListString',list_str);
 
-for s = 1:2
+for s = 2:2
     
     % load in data
     if (strcmp(sid, 'a1355e'))
