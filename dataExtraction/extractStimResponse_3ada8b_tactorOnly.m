@@ -17,10 +17,10 @@ list_str = {'tactor + audio ','tactor'};
 if (strcmp(sid, '3ada8b'))
     
     if s == 1
-        load(fullfile(DATA_DIR,'stimParamSweep-2.mat'))
+        load(fullfile(DATA_DIR,'stimParamSweep-2.mat')) % tactor + audio
         block = '1';
     elseif s == 2
-        load(fullfile(DATA_DIR,'stimParamSweep-3.mat'))
+        load(fullfile(DATA_DIR,'stimParamSweep-3.mat')) % just tactor 
         block = '2';
     end
     
@@ -172,6 +172,23 @@ title('average wavelet HG amplitude')
 set(gca,'fontsize',14)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% alpha power 
+for ii = 1:size(processedSigTactor,3)
+    logAlphaPower(:,:,ii) = log(hilbAmp(squeeze(processedSigTactor(:,:,ii)), [8 12], fsData).^2);
+end
+%%
+individual = 1;
+average = 1;
+chanIntList = [1 2 3 4 5 12 13 30 33];
+%chanIntList = 3;
+trainDuration = [];
+modePlot = 'avg';
+xlims = [-500 1000];
+ylims = [-30 -20];
+logAlphaPowerMean = mean(logAlphaPower,3);
+vizFunc.small_multiples_time_series_power(logAlphaPowerMean,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+
 return
 %% figure out stim times
 % vector of condition type - for first subject, looks like condition type

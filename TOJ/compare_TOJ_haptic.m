@@ -1,40 +1,77 @@
 
-loadFile = 1;
+loadFile = 0;
 %%
 if loadFile
     load('G:\My Drive\GRIDLabDavidShared\ResponseTiming\3ada8b_TOJ_8_17_2018_brainData_DCSonly_tactorOnly.mat')
 end
-
+%
 figure
-chanInt = 11;
-
-plot(1e3*tEpoch,1e6*mean(squeeze(processedSigTactor(:,chanInt,:)),2))
+chanInt = 30;
+order = 3;
+framelen = 501;
+plot(1e3*tEpoch,1e6*sgolayfilt_complete(mean(squeeze(processedSigTactor(:,chanInt,:)),2),order,framelen),'linewidth',2)
 hold on
 xlabel('time (ms)');
 ylabel('microvolts')
 title(['Processed Channel ' ]);
 
 
-plot(1e3*tEpoch,1e6*avgResponseShift(:,chanInt))
-plot(1e3*tEpoch,1e6*avgResponse(:,chanInt))
+plot(1e3*tEpoch,1e6*sgolayfilt_complete(avgResponseShift(:,chanInt),order,framelen),'linewidth',2)
+plot(1e3*tEpoch,1e6*sgolayfilt_complete(avgResponse(:,chanInt),order,framelen),'linewidth',2)
+
+%%
+
+
 %%
 if loadFile
     load('3ada8b_priming_neural_block_1_cond4_processed.mat')
 end
 
 %%
-plot(1e3*tEpoch,1e6*mean(squeeze(processedSigReref(:,chanInt,:)),2))
-
+plot(1e3*tEpoch,1e6*sgolayfilt_complete(mean(squeeze(processedSigReref(:,chanInt,:)),2),order,framelen),'linewidth',2)
 ylabel('signal (\mu V)')
 
 xlabel('time (ms)')
 legend('Haptic only','TOJ aligned on tactor','TOJ aligned on stimulation train','DCS only')
 title('Haptic only compared to Simultaneous Stimulation')
 %%
-ylims = [-(max(abs(1e6*mean(squeeze(processedSigTactor(:,chanInt,:)),2))) + 100) (max(abs(1e6*mean(squeeze(processedSigTactor(:,chanInt,:)),2))) + 100)];
+
+%ylims = [-(max(abs(1e6*mean(squeeze(processedSigTactor(:,chanInt,:)),2))) + 100) (max(abs(1e6*mean(squeeze(processedSigTactor(:,chanInt,:)),2))) + 100)];
+ylims = [-60 60]
 ylim(ylims);
 
-xlim([-500 2000]);
+xlim([-200 700]);
 vline(mean(stimTime),'r','stim')
 
-set(gca,'fontsize',14')
+set(gca,'fontsize',20)
+
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% normalize data
+dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
+%
+dataRefTactor = poweroutTactor(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
+[normalizedData] = normalize_spectrogram(dataRef,powerout);
+[normalizeDataTactor] = normalize_spectrogram(dataRefTactor,poweroutTactor);
+
+%%
+% chanIntList = chanInt;
+chanIntList = 22;
+for chanInt = chanIntList
+    visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
+        tEpoch,epochedECoG,chanInt,stimTime,response,individual,average)
+end
+%%
+for chanInt = chanIntList
+    visualize_wavelet_channel(normalizedDataTactor,tMorlet,fMorlet,processedSig,...
+        tEpoch,epochedECoG,chanInt,stimTime,response,individual,average)
+end
+
+
+%%
+vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
+
+%%
+vizFunc.small_multiples_spectrogram(normalizedDataTactor,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);

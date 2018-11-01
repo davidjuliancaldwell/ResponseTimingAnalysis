@@ -148,10 +148,15 @@ for i = 1:length(uniqueCond)
             buttonLocsTempSamps = ipt(1)+round(buttonStart*fsTact);
             buttonLocsTemp = buttonLocsTempSamps/fsTact;
             
+%             
+%             figure
+%             
+%             findchangepts((epochedButton{i}(tEpoch>buttonStart,j)),'maxnumchanges',2);
+%             figure
+%             findpeaks((epochedTactor(:,j)),tEpochSamps,'NPeaks',1,'Minpeakheight',1);
+%             xlim([24414 length(epochedTactor(:,j))])
+
             
-            %              figure
-            %               findchangepts((epochedButton{i}(tEpoch>1,j)),'maxnumchanges',2)
-            %
             %[%buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton{i}(tEpoch>1,j)),tEpoch(tEpoch>1),'NPeaks',1,'Minpeakheight',0.008);
             % [%buttonPksTempSamps,buttonLocsTempSamps] = findpeaks((epochedButton{i}(tEpochSamps>24415,j)),tEpochSamps(tEpochSamps>24415),'NPeaks',1,'Minpeakheight',0.008);
             

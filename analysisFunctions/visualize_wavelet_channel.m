@@ -12,22 +12,44 @@ if individual
         totalFig.Units = 'inches';
         totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
         subplot(3,1,1);
-        surf(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i),'edgecolor','none');
+        s = surf(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i),'edgecolor','none');
+        xlimsVec = [-200 1000];
+        ylimsVec = [0 300];
+        %%Create vectors out of surface's XData and YData
+        x=x(1,:);
+        y=y(1,:);
+        interestX = [xlimsVec(1) xlimsVec(end)];
+        interestY = [ylimsVec(1) ylimsVec(end)];
+        % Divide the lengths by the number of lines needed
+        
+        % Plot the mesh lines
+        % Plotting lines in the X-Z plane
+        hold on
+        for i = 1:2
+            Y1 = interestY(i)*ones(size(x)); % a constant vector
+            Z1 = zeros(size(x));
+            plot3(x,Y1,Z1,'-k');
+        end
+        % Plotting lines in the Y-Z plane
+        for i = 1:2
+            X2 = interestX(i)*ones(size(y)); % a constant vector
+            Z1 = zeros(size(X2));
+            plot3(X2,y,Z1,'-k');
+        end
+        
         view(0,90);
         axis tight;
         xlabel('time (ms)');
         ylabel('frequency (Hz)');
         title(['Wavelet decomposition Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
-        xlim([-200 1000]);
+        xlim(xlimsVec);
+        ylim(ylimsVec);
         set(gca,'fontsize',14)
         colormap(CT);
         set_colormap_threshold(gcf, [-0.5 0.5], [-6 6], [1 1 1])
-        hold on
         plot3([stimTime(i),stimTime(i)],[0 300],[1000,1000],'r','linewidth',2)
         plot3([1e3*response(i),1e3*response(i)],[0 300],[1000,1000],'g','linewidth',2)
-        
-        ylim([1 200])
-        colorbar()
+                colorbar()
         
         h1 = subplot(3,1,2);
         plot(1e3*tEpoch,1e6*processedSig(:,chanInt,i))
@@ -67,30 +89,52 @@ if average
     totalFig2.Units = 'inches';
     totalFig2.Position = [12.1806 3.4931 6.0833 7.8056];
     subplot(3,1,1);
-    surf(1e3*tMorlet,fMorlet,poweroutAvg,'edgecolor','none');
+    s = surf(1e3*tMorlet,fMorlet,poweroutAvg,'edgecolor','none');
+    hold on
+    xlimsVec = [-200 1000];
+    ylimsVec = [0 300];
+    % Extract X,Y and Z data from surface plot
+    x=s.XData;
+    y=s.YData;
+    z=s.ZData;
+    
+    %%Create vectors out of surface's XData and YData
+    x=x(1,:);
+    y=y(1,:);
+    interestX = [xlimsVec(1) xlimsVec(end)];
+    interestY = [ylimsVec(1) ylimsVec(end)];
+    % Divide the lengths by the number of lines needed
+    
+    % Plot the mesh lines
+    % Plotting lines in the X-Z plane
+    hold on
+    for i = 1:2
+        Y1 = interestY(i)*ones(size(x)); % a constant vector
+        Z1 = zeros(size(x));
+        plot3(x,Y1,Z1,'-k');
+    end
+    % Plotting lines in the Y-Z plane
+    for i = 1:2
+        X2 = interestX(i)*ones(size(y)); % a constant vector
+        Z1 = zeros(size(X2));
+        plot3(X2,y,Z1,'-k');
+    end
+    
     view(0,90);
+    
     axis tight;
     xlabel('time (ms)');
     ylabel('frequency (Hz)');
     title(['Wavelet decomposition Channel ' num2str(chanInt)]);
-    xlim([-200 1000]);
+    xlim(xlimsVec);
+    ylim(ylimsVec);
     set(gca,'fontsize',14)
     colormap(CT);
     set_colormap_threshold(gcf, [-0.5 0.5 ], [-6 6], [1 1 1])
-    hold on
+    colorbar();
     plot3([mean(stimTime),mean(stimTime)],[0 300],[1000,1000],'r','linewidth',2)
     plot3([1e3*mean(response),1e3*mean(response)],[0 300],[1000,1000],'g','linewidth',2)
-    hold on
-
-    ylim([1 200])
-    colorbar;
-    % vline(stimTime(i),'r','stim')
-    %   vline(1e3*response(i),'g','response')
     
-    % figure
-    % helperCWTTimeFreqPlot(squeeze(powerout(:,:,chanInt,i)),1e3*tMorlet,fMorlet,'surf')
-    
-    %figure;
     h3 = subplot(3,1,2);
     plot(1e3*tEpoch,1e6*mean(squeeze(processedSig(:,chanInt,:)),2))
     xlabel('time (ms)');
@@ -101,7 +145,7 @@ if average
     ylim_h1 = ylims;
     xlim([-200 1000]);
     vline(mean(stimTime),'r','stim')
-   % vline(1e3*mean(response),'g','response')
+    % vline(1e3*mean(response),'g','response')
     
     set(gca,'fontsize',14)
     

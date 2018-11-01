@@ -61,7 +61,6 @@ delays = tactorStimDiff;
 % stim = 1
 firstFeel = whichPerceived;
 
-
 %% process artifacts centered on stim
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -89,7 +88,7 @@ post = 1; % started with 0.2
 % options are 'eucl', 'cosine', 'corr', for either euclidean distance,
 % cosine similarity, or correlation for clustering and template matching.
 
-distanceMetricDbscan = 'cosine';
+distanceMetricDbscan = 'eucl';
 distanceMetricSigMatch = 'eucl';
 amntPreAverage = 3;
 normalize = 'preAverage';

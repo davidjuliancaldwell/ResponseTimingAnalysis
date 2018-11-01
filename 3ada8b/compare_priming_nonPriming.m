@@ -31,6 +31,6 @@ individual = 0;
 average = 1;
 modePlot = 'avg';
 vizFunc.small_multiples_time_series(processedSig7,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
-vizFunc.small_multiples_time_series(processedSigReref4,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+vizFunc.small_multiples_time_series(processedSig4,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 

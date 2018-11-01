@@ -1,7 +1,7 @@
 %% 5.12.2018 - David J. Caldwell
 % analyze different response timing subjects one at a time
 
-close all; clearvars ; clc
+%close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
@@ -17,7 +17,7 @@ SIDSblocked = {'c19968','693ffd','2fd831'};
 SIDSprimed = {'a1355e','3ada8b'};
 
 % 3ada8b has been multiplied by 4 in the neural analysis prep
-SIDSint = {'3ada8b'};
+SIDSint = {'693ffd'};
 
 primedBlock = 1;
 reref = 0;
@@ -28,6 +28,7 @@ for i = SIDSint
     if sum(strcmp(sid,SIDSprimed)) == 0
         DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\pooled_RT_data';
         load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
+        
     elseif sum(strcmp(sid,SIDSprimed)) == 1
         DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\priming_data';
         load(fullfile(DATA_DIR,[sid '_priming_neural_block_' num2str(primedBlock) '.mat']));
@@ -79,9 +80,9 @@ for i = SIDSint
             chanInt = 23;
         case '3ada8b'
             stimChans = [4 3 24 32];
-            chanInt = 11;
-            chanIntList = [1 2 3 4 5 12 13 30 33 53 54 61];
             
+            chanInt = 11;
+            chanIntList = [1 2 3 4 5 12 13 30 33 45 51 52 53 54 61 62];  
     end
     
     trainDuration = [];
@@ -90,6 +91,7 @@ for i = SIDSint
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%
     % params for DBSscan optimization
+    bracketRange = [-5:12];
     
     type = 'dictionary';
     
@@ -101,7 +103,8 @@ for i = SIDSint
     %pre = 0.4096; % in ms
     %post = 0.4096; % in ms
     
-    pre = 0.5; % started with 1
+    pre = 1; % started with 1
+    % 0.5 9/23/2018
     post = 0.8; % started with 0.2, last was 0.6
     % 2.8, 1, 0.5 was 3/19/2018
     post = 0.8;
@@ -113,9 +116,8 @@ for i = SIDSint
     % options are 'eucl', 'cosine', 'corr', for either euclidean distance,
     % cosine similarity, or correlation for clustering and template matching.
     
-    distanceMetricDbscan = 'cosine';
-    distanceMetricSigMatch = 'cosine';
-    amntPreAverage = 5; % was three
+    distanceMetricDbscan = 'eucl';
+    distanceMetricSigMatch = 'eucl';
     amntPreAverage = 3;
     normalize = 'preAverage';
     %  normalize = 'firstSamp';
@@ -131,15 +133,29 @@ for i = SIDSint
     % condIntAns for priming
     % 0 - unprimed
     % 1 - primed
-    for condInt = 7:7
+    
+    % for 3ada8b, block 2
+    %
+    % uniqueCond =
+    %
+    %      0
+    %      5
+    %      6 - this is the 2 pulses in isolation
+    
+    for condInt = 6:6
         %   condInt = 2;
         condIntAns = uniqueCond(condInt);
         dataInt = data{condInt};
+        
+        if ~strcmp(sid,'3ada8b')
+            dataInt = 4*dataInt;
+        end
         response = buttonLocs{condInt};
         
         % get additional fake channels on 693ffd so it plots ok
         if strcmp(sid,'693ffd')
             dataInt = cat(2,dataInt,zeros(size(dataInt,1),64-size(dataInt,2),size(dataInt,3)));
+            stimChans = [stimChans, [53:64]];
         end
         
         if strcmp(sid,'a1355e') || strcmp(sid,'3ada8b')
@@ -157,11 +173,15 @@ for i = SIDSint
                     dataInt(:,i,:) = polyfit_subtract(squeeze(dataInt(:,i,:)),orderPoly);
                 end
             end
-            
+      
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(dataInt,'type',type,...
-                'fs',fsData,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
+                'fs',fsData,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
+                'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
                 'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
-                'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,'minDuration',minDuration);
+                'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,...
+                'minDuration',minDuration,'bracketRange',bracketRange);
+            %
             stimTime = zeros(size(processedSig,3),1); % it is centered around zero now
             
         elseif (condIntAns == -1)
@@ -173,11 +193,8 @@ for i = SIDSint
                     processedSig(:,i,:) = polyfit_subtract(squeeze(dataInt(:,i,:)),orderPoly);
                 end
             else
-                processedSig = dataInt;
-                
-                
+                processedSig = dataInt;             
             end
-            
             %stimTime = 1e3*tactorLocsVec; %
             stimTime = zeros(size(processedSig,3),1); % it is centered around zero now
             t = t_epoch;
@@ -189,7 +206,9 @@ for i = SIDSint
         
         response = response(responseBool);
         % only take ones where they responded within time bins
-        processedSig = processedSig(:,:,responseBool);
+        if ~strcmp(sid,'3ada8b') & (primedBlock == 2);
+            processedSig = processedSig(:,:,responseBool);
+        end
         
         rerefMode = 'mean';
         if strcmp(sid,'c19968')
@@ -210,8 +229,8 @@ for i = SIDSint
         
         processedSigReref = rereference_CAR_median(processedSig,rerefMode,badChannels);
         
-                % small multiples
-       
+        % small multiples
+        
         individual = 0;
         average = 1;
         %chanIntList = 3;
@@ -242,15 +261,13 @@ for i = SIDSint
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-
+        return
         
         %% wavelet and plv
-        
-        %%
+   
         %%%%%% PLV
         freqRange = [8 12];
         %[plv] = plvWrapper(processedSig,fsData,freqRange,stimChans);
-        %%
         %%%%%%% wavelet
         timeRes = 0.01; % 25 ms bins
         
@@ -262,7 +279,6 @@ for i = SIDSint
         dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
         %
         [normalizedData] = normalize_spectrogram(dataRef,powerout);
-        %%
         individual = 0;
         average = 1;
         % chanIntLIst = 42;
