@@ -1,4 +1,4 @@
-function [] = visualize_wavelet_channel(powerout,tMorlet,fMorlet,processedSig,tEpoch,dataInt,chanInt,stimTime,response,individual,average)
+function [] = visualize_wavelet_channel_onlyProcessed(powerout,tMorlet,fMorlet,processedSig,tEpoch,chanInt,stimTime,response,individual,average)
 % set colormap using cbrewer
 %CT = cbrewer('div','RdBu',11);
 % flip it so red is increase, blue is down
@@ -11,7 +11,7 @@ if individual
         totalFig = figure;
         totalFig.Units = 'inches';
         totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
-        subplot(3,1,1);
+        subplot(2,1,1);
         s = surf(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i),'edgecolor','none');
         xlimsVec = [-200 1000];
         ylimsVec = [0 300];
@@ -51,7 +51,7 @@ if individual
         plot3([1e3*response(i),1e3*response(i)],[0 300],[1000,1000],'g','linewidth',2)
                 colorbar()
         
-        h1 = subplot(3,1,2);
+        h1 = subplot(2,1,2);
         plot(1e3*tEpoch,1e6*processedSig(:,chanInt,i))
         vline(stimTime(i),'r','stim')
         xlabel('time (ms)');
@@ -64,18 +64,6 @@ if individual
         xlim([-200 1000]);
         set(gca,'fontsize',14)
         
-        h2 = subplot(3,1,3);
-        plot(1e3*tEpoch,1e6*dataInt(:,chanInt,i))
-        vline(stimTime(i),'r','stim')
-        xlabel('time (ms)');
-        ylabel('microvolts')
-        title(['Raw Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
-        vline(1e3*response(i),'g','response')
-        ylim(ylim_h1);
-        xlim([-200 1000]);
-        set(gca,'fontsize',14);
-        
-        linkaxes([h1,h2],'xy');
         
     end
     
@@ -88,7 +76,7 @@ if average
     totalFig2 = figure;
     totalFig2.Units = 'inches';
     totalFig2.Position = [12.1806 3.4931 6.0833 7.8056];
-    subplot(3,1,1);
+    subplot(2,1,1);
     s = surf(1e3*tMorlet,fMorlet,poweroutAvg,'edgecolor','none');
     hold on
     xlimsVec = [-200 1000];
@@ -135,7 +123,7 @@ if average
     plot3([mean(stimTime),mean(stimTime)],[0 300],[1000,1000],'r','linewidth',2)
     plot3([1e3*mean(response),1e3*mean(response)],[0 300],[1000,1000],'g','linewidth',2)
     
-    h3 = subplot(3,1,2);
+    h3 = subplot(2,1,2);
     plot(1e3*tEpoch,1e6*nanmean(squeeze(processedSig(:,chanInt,:)),2))
     xlabel('time (ms)');
     ylabel('microvolts')
@@ -149,18 +137,6 @@ if average
     
     set(gca,'fontsize',14)
     
-    h4 = subplot(3,1,3);
-    plot(1e3*tEpoch,1e6*nanmean(squeeze(dataInt(:,chanInt,:)),2))
-    xlabel('time (ms)');
-    ylabel('microvolts')
-    title(['Raw Channel ' num2str(chanInt)]);
-    ylim(ylim_h1);
-    xlim([-200 1000]);
-    set(gca,'fontsize',14);
-    vline(nanmean(stimTime),'r','stim')
-    %vline(1e3*nanmean(response),'g','response')
-    
-    linkaxes([h3,h4],'xy');
 end
 
 end

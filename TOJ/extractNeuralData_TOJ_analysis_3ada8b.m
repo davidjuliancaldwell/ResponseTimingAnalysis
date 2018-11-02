@@ -129,6 +129,12 @@ tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
 dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %
 [normalizedData] = normalize_spectrogram(dataRef,powerout);
+
+%% rereference
+rerefMode = 'mean';
+badChannels = stimChans;
+processedSigReref = rereference_CAR_median(processedSig,rerefMode,badChannels);
+
 %%
 individual = 0;
 average = 1;
@@ -141,6 +147,7 @@ ylims = [-300 300];
 vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 %%
+stimTime = 0;
 % chanIntList = chanInt;
 for chanInt = chanIntList
     visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
@@ -150,14 +157,9 @@ end
 
 HGPowerWavelet = squeeze(mean(squeeze(normalizedData(fMorlet < 150 & fMorlet > 70,:,:,:)),1));
 
-%%
+%
 vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
-%% hilb amp HG
-processedSigHG = zeros(size(processedSig));
-for trial = 1:size(processedSig,3)
-    [amp] = log(hilbAmp(squeeze(processedSig(:,:,trial)), [70 150], fsData).^2);
-    processedSigHG(:,:,trial) = amp;
-end
+
 
 
 %% process artifacts focused on tactor
@@ -200,10 +202,6 @@ vizFunc.multiple_visualizations(sigShifted,epochedECoG,'fs',ecoFs,'type',type,'t
     tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
     'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')
 
-%% rereference
-rerefMode = 'mean';
-badChannels = stimChans;
-processedSigReref = rereference_CAR_median(processedSig,rerefMode,badChannels);
 
 %%
 sigShiftedReref = nan(size(processedSigReref));
@@ -228,6 +226,48 @@ ylims = [-300 300];
 vizFunc.small_multiples_time_series(sigShiftedReref,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 
+%% do TF processing on shifted sig 
+%%%%%%% wavelet
+timeRes = 0.050; % 50 ms bins
+
+[poweroutShifted,fMorlet,tMorlet,~] = waveletWrapper(sigShifted,ecoFs,timeRes,stimChans);
+
+tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
+
+%% extract non nan part!
+[indexNonNan] = ~isnan(tactorStimDiff);
+
+poweroutShifted = poweroutShifted(:,:,:,indexNonNan);
+
+%% normalize data
+dataRefShifted = poweroutShifted(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
+%
+[normalizedDataShift] = normalize_spectrogram(dataRefShifted,poweroutShifted);
+% % hilb amp HG
+% processedSigHG = zeros(size(sigShifted));
+% for trial = 1:size(sigShifted,3)
+%     [amp] = log(hilbAmp(squeeze(sigShifted(:,:,trial)), [70 150], fsData).^2);
+%     processedSigHG(:,:,trial) = amp;
+% end
+
+% processedSigHG = processedSigHG(~isnan(processedSigHG));
+
+%%
+stimTime = 0;
+% chanIntList = chanInt;
+for chanInt = chanIntList
+    visualize_wavelet_channel(normalizedDataShift,tMorlet,fMorlet,sigShifted,...
+        tEpoch,epochedECoG,chanInt,stimTime,response,individual,average)
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+HGPowerWavelet = squeeze(mean(squeeze(normalizedDataShift(fMorlet < 150 & fMorlet > 70,:,:,:)),1));
+
+%
+vizFunc.small_multiples_spectrogram(normalizedDataShift,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% not below here 
 %%
 trainTimesTactor = trainTimes + round(tactorStimDiff*ecoFs)';
 
