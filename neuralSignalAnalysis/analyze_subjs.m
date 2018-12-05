@@ -22,9 +22,9 @@ SIDSint = {'3ada8b'};
 primedBlock = 1;
 reref = 0;
 %%
-for i = SIDSint
+for sid = SIDSint
     %%
-    sid = i{:};
+    sid = sid{:};
     if sum(strcmp(sid,SIDSprimed)) == 0
         DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\pooled_RT_data';
         load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
@@ -172,8 +172,8 @@ for i = SIDSint
             %orderPoly = 6;
             orderPoly = 3; %10-12-2017 - djc change
             if meanSub == 1
-                for i = 1:size(dataInt,2)
-                    dataInt(:,i,:) = polyfit_subtract(squeeze(dataInt(:,i,:)),orderPoly);
+                for ii = 1:size(dataInt,2)
+                    dataInt(:,ii,:) = polyfit_subtract(squeeze(dataInt(:,ii,:)),orderPoly);
                 end
             end
       
@@ -192,8 +192,8 @@ for i = SIDSint
             %orderPoly = 6;
             orderPoly = 3; %10-12-2017 - djc change
             if meanSub == 1
-                for i = 1:size(dataInt,2)
-                    processedSig(:,i,:) = polyfit_subtract(squeeze(dataInt(:,i,:)),orderPoly);
+                for ii = 1:size(dataInt,2)
+                    processedSig(:,ii,:) = polyfit_subtract(squeeze(dataInt(:,ii,:)),orderPoly);
                 end
             else
                 processedSig = dataInt;             
