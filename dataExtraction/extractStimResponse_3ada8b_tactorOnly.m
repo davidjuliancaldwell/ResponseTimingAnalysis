@@ -77,7 +77,8 @@ clear ECO3
 data = [eco1 eco2 eco3];
 clearvars eco1 eco2 eco3
 
-data = 4*data(:,1:64);
+%data = 4*data(:,1:64);
+data = 4*data;
 
 %%
 
@@ -141,7 +142,13 @@ for trial = 1:size(processedSigTactor,3)
     processedSigHG(:,:,trial) = amp;
 end
 %%
-chanInt = 3;
+processedSigHG = zeros(size(processedSigTactor));
+for trial = 1:size(processedSigTactor,3)
+    [amp] = (hilbAmp(squeeze(processedSigTactor(:,:,trial)), [70 300], fsData).^2);
+    processedSigHGnoLog(:,:,trial) = amp;
+end
+%%
+chanInt = 2;
 figure
 subplot(2,1,1)
 plot(1e3*tEpoch,squeeze(mean(squeeze(processedSigHG(:,chanInt,:)),2)))
@@ -173,6 +180,14 @@ title('average wavelet HG amplitude')
 set(gca,'fontsize',14)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+trainDuration = [];
+modePlot = 'avg';
+xlims = [-500 1000];
+ylims = [0 5];
+HGPowerMean = mean(HGPowerWaveletTactor,3);
+vizFunc.small_multiples_time_series(HGPowerMean,tMorlet,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
+
 
 %% alpha power 
 for ii = 1:size(processedSigTactor,3)
