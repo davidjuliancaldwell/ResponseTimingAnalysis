@@ -3,7 +3,9 @@
 % this is from my z_constants
 Z_ConstantsStimResponse;
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
+subjdir = getenv('SUBJECT_DIR');
+DATA_DIR = fullfile(subjdir,'\ConvertedTDTfiles');
+
 sid = SIDS{4};
 
 % % ui box for input

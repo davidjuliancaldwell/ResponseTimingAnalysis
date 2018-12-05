@@ -3,7 +3,8 @@
 % this is from my z_constants
 Z_ConstantsStimResponse;
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d10\MATLAB_conversions\3ada8b_ParamSweep\';
+subjdir = getenv('SUBJECT_DIR');
+DATA_DIR = fullfile(subjdir,'3ada8b\data\d10\MATLAB_conversions\3ada8b_ParamSweep\');
 sid = SIDS{6};
 %
 % ui box for input

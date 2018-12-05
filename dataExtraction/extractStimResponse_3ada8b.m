@@ -3,7 +3,9 @@ close all;clear all;clc
 % this is from my z_constants
 Z_ConstantsStimResponse;
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d9\MATLAB_conversions\3ada8b_ResponseTiming';
+subjdir = getenv('SUBJECT_DIR');
+DATA_DIR = fullfile(subjdir,'\ConvertedTDTfiles');
+
 sid = SIDS{6};
 %
 % % ui box for input

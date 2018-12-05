@@ -1,15 +1,12 @@
 %% starting with subject a
-
-% % DJC Desktop
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
-
-%% load in subject
+% load in subject
 
 % this is from my z_constants
 Z_ConstantsStimResponse;
 
 sid = SIDS{1};
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
+subjdir = getenv('SUBJECT_DIR');
+DATA_DIR = fullfile(subjdir,'\ConvertedTDTfiles');
 
 % ui box for input
 %list_str = {'sensory stimulation','tactor stimulation','off target stimulation'};
