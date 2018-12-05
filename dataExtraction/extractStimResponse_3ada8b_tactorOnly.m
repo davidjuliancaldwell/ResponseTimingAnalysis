@@ -78,7 +78,7 @@ data = [eco1 eco2 eco3];
 clearvars eco1 eco2 eco3
 
 %data = 4*data(:,1:64);
-data = 4*data;
+data = 4*data(:,1:92);
 
 %%
 
@@ -95,7 +95,17 @@ rerefMode = 'mean';
 badChannels = [];
 response = zeros(length(tactLocsSamps),1);
 stimChans = [];
-processedSigTactor = rereference_CAR_median(epochedCortEcoTactor,rerefMode,badChannels);
+%%
+% reference each bank independently
+subjdir = getenv('SUBJECT_DIR');
+
+DATA_DIR = fullfile(subjdir,'3ada8b\data\d10\MATLAB_conversions\3ada8b_ParamSweep\');
+load(fullfile(subjdir,sid,[sid '_Montage.mat']));
+for trial = 1:size(epochedCortEcoTactor,3)
+    processedSigTactor(:,:,trial) = ReferenceCAR(Montage.Montage,[], epochedCortEcoTactor(:,:,trial));
+end
+%
+%processedSigTactor = rereference_CAR_median(epochedCortEcoTactor,rerefMode,badChannels);
 
 tactorEpoched = squeeze(getEpochSignal(decimate(tactorDataClip,2),tactLocsSamps-sampsPreStim,tactLocsSamps+ sampsPostStim));
 
