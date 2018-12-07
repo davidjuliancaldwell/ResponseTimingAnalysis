@@ -2,8 +2,9 @@
 close all;clear all;clc
 Z_ConstantsStimResponse;
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\TOJ';
+subjdir = getenv('SUBJECT_DIR');
 sid = SIDS{5};
+DATA_DIR = fullfile(subjdir,sid,'\data\d7\Converted_Matlab\TOJ');
 
 for s = 1:2
     % load in data

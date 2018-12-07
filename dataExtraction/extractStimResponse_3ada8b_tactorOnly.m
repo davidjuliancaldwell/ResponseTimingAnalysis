@@ -57,7 +57,6 @@ tactLocsSamps = round(tactLocsSamps/2);
 adjust = 0;
 
 if adjust
-    
     tactLocsSamps = tactLocsSamps - round(10*fsData/1e3);
 end
 
@@ -76,10 +75,10 @@ clear ECO3
 
 data = [eco1 eco2 eco3];
 clearvars eco1 eco2 eco3
-
+%%
 %data = 4*data(:,1:64);
+%data = 4*data(:,1:92);
 data = 4*data(:,1:92);
-
 %%
 
 % additional parameters
@@ -98,7 +97,7 @@ stimChans = [];
 %%
 % reference each bank independently
 subjdir = getenv('SUBJECT_DIR');
-
+clearvars processedSigTactor
 DATA_DIR = fullfile(subjdir,'3ada8b\data\d10\MATLAB_conversions\3ada8b_ParamSweep\');
 load(fullfile(subjdir,sid,[sid '_Montage.mat']));
 for trial = 1:size(epochedCortEcoTactor,3)
@@ -106,9 +105,10 @@ for trial = 1:size(epochedCortEcoTactor,3)
 end
 %
 %processedSigTactor = rereference_CAR_median(epochedCortEcoTactor,rerefMode,badChannels);
-
+%processedSigTactor = processedSigTactor(:,1:64,:);
 tactorEpoched = squeeze(getEpochSignal(decimate(tactorDataClip,2),tactLocsSamps-sampsPreStim,tactLocsSamps+ sampsPostStim));
 
+return
 
 %%
 %%%%%%% wavelet
@@ -116,7 +116,9 @@ timeRes = 0.01; % 25 ms bins
 
 % [powerout,fMorlet,tMorlet] = wavelet_wrapper(processedSig,fsData,stimChans);
 [poweroutTactor,fMorlet,tMorlet,~] = waveletWrapper(processedSigTactor,fsData,timeRes,stimChans);
-%
+%%
+poweroutTactor = poweroutTactor(:,:,1:64,:);
+
 tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
 % normalize data
 dataRefTactor = poweroutTactor(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
@@ -126,6 +128,8 @@ dataRefTactor = poweroutTactor(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 individual = 0;
 average = 1;
 chanIntList = [1 2 3 4 5 12 13 30 33];
+%chanIntList = [1 2 3 4 5 12 13 30 33 73 74 75 76 77 78 79 80];
+
 %chanIntList = 3;
 trainDuration = [];
 modePlot = 'avg';

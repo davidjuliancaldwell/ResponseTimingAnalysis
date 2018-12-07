@@ -2,8 +2,9 @@
 close all;clear all;clc
 Z_ConstantsStimResponse;
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d10\MATLAB_conversions\3ada8b_TOJ';
+subjdir = getenv('SUBJECT_DIR');
 sid = SIDS{6};
+DATA_DIR = fullfile(subjdir,sid,'\data\d10\MATLAB_conversions\3ada8b_TOJ');
 % load in data
 folder_data = strcat(DATA_DIR);
 

@@ -14,7 +14,7 @@ if individual
         subplot(3,1,1);
         s = surf(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i),'edgecolor','none');
         xlimsVec = [-200 1000];
-        ylimsVec = [0 300];
+        ylimsVec = [0 200];
         %%Create vectors out of surface's XData and YData
         x=x(1,:);
         y=y(1,:);
