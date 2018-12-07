@@ -35,7 +35,7 @@ vizFunc.small_multiples_time_series(processedSigTactorTotal,tEpoch,'type1',stimC
 %%
 startInd = 65;
 for index = 2:length(Montage.Montage)
-    vizFunc.small_multiples_time_series(processedSigTactorTotal(:,startInd:(startInd+Montage.Montage(index)),:),...
+    vizFunc.small_multiples_time_series(processedSigTactorTotal(:,startInd:(startInd+Montage.Montage(index)-1),:),...
         tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
     startInd = startInd + Montage.Montage(index);
 end
@@ -114,6 +114,10 @@ vizFunc.small_multiples_time_series(HGPowerMeanTotal/1e6,tMorlet,'type1',stimCha
 
 processedSigTactorTotalSub = processedSigTactorTotal(:,[1:64,65:72,85:92],:);
 %% phase slope index
+
+load('america');
+cmap = cm;
+CT = cm;
 
 freqbins = {[4:8],[8:12],[12:30],[70:150]};
 %freqbins = {[70:150]};
