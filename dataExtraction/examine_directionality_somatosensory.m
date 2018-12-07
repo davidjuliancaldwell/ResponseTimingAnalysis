@@ -195,7 +195,7 @@ for freq = freqbins
 
 end
 
-%% correlation
+%% cross-correlation on HG signal
 subsetHGsignal = HGPowerMeanTotal(tMorlet>=tBeginSub & tMorlet <= tEndSub,:);
 [c,lags] = xcorr(subsetHGsignal,'biased');
 lags = 10*lags ;
@@ -273,7 +273,88 @@ ylabel('correlation value')
 
 
 return
-%% significance with permutation test
+
+%% cross-correlation on time series signal
+processedSigTactorTotalMean = mean(processedSigTactorTotalSub(tEpoch>=tBeginSub & tEpoch<= tEndSub,:,:),3);
+
+for i = 1:size(processedSigTactorTotalMean,2)
+    processedSigTactorTotalSubDec(:,i) = decimate(processedSigTactorTotalMean(:,i),10);
+end
+    %
+[cTime,lagsTime] = xcorr(processedSigTactorTotalSubDec,'biased');
+lagsTime = 1e3*lagsTime/(fsData/10) ;
+%
+cMatTime = reshape(cTime,length(lagsTime),size(processedSigTactorTotalSub,2),[]); % now the second dimension has the cov between the channel in the 3rd dimension and all others
+
+%% get normal differences
+load('america');
+cmap = cm;
+CT = cm;
+
+[cMaxTime,indTime] = max(abs(cMatTime),[],1);
+lagsMaxTime = lagsTime(indTime);
+
+cMaxTime = squeeze(cMaxTime);
+lagsMaxTime = squeeze(lagsMaxTime);
+
+figure
+subplot(1,2,1)
+imagesc(cMaxTime)
+set(gca,'fontsize',16)
+title('Maximum cross-correlation coefficient')
+xlabel('Channel')
+ylabel('Channel')
+colormap(gca,pink)
+colorbar()
+
+subplot(1,2,2)
+imagesc(lagsMaxTime)
+xlabel('Channel')
+ylabel('Channel')
+title('Lag (ms) at maximum cross-correlation coefficient')
+set(gca,'fontsize',16)
+colormap(gca,cmap)
+colorbar()
+
+%%
+
+chanInt1 = 3;
+chanInt2 = 22;
+[cMaxTrialTime,indTrialTime] = max(abs(cMatTime(:,chanInt1,chanInt2)));
+lagsMaxTrialTime = lags(indTrialTime);
+figure
+subplot(3,1,1)
+plot(lags,cMatTime(:,chanInt1,chanInt2),'linewidth',3);
+set(gca,'fontsize',16)
+vline(lagsMaxTrialTime,'black')
+title(['Cross-correlation between grid channels ' num2str(chanInt1) ' and ' num2str(chanInt2)])
+
+chanInt1 = 3;
+chanInt2 = 36;
+[cMaxTrialTime,indTrialTime] = max(abs(cMatTime(:,chanInt1,chanInt2)));
+lagsMaxTrialTime = lags(indTrialTime);
+subplot(3,1,2)
+plot(lags,cMatTime(:,chanInt1,chanInt2),'linewidth',3);
+title(['Cross-correlation between grid channels ' num2str(chanInt1) ' and ' num2str(chanInt2)])
+set(gca,'fontsize',16)
+vline(lagsMaxTrial,'black')
+
+chanInt1 = 3;
+chanInt2 = 79;
+[cMaxTrialTime,indTrialTime] = max(abs(cMatTime(:,chanInt1,chanInt2)));
+lagsMaxTrial = lags(indTrial);
+subplot(3,1,3)
+plot(lagsTime,cMatTime(:,chanInt1,chanInt2),'linewidth',3);
+set(gca,'fontsize',16)
+vline(lagsMaxTrialTime,'black')
+title(['Cross-correlation between grid channel ' num2str(chanInt1) ' and RPT 7'])
+
+
+set(gca,'fontsize',16)
+vline(lagsMaxTrialTime,'black')
+xlabel('time lag (ms)')
+ylabel('correlation value')
+%% significance with permutation test, not working yet 
 
 nperms = 1000;
 sizeSignal = size(subsetHGsignal);
