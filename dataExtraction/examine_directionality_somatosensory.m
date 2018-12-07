@@ -125,7 +125,7 @@ freqbins = {[4:8],[8:12],[12:30],[70:150]};
 % parameters for PSI-calculation
 segleng=500;epleng=1000;
 tBeginSub = -0.5; % seconds
-tEndSub = 1; % seconds;
+tEndSub = 1.5; % seconds;
 
 counter = 1;
 clearvars psiTotal
@@ -198,7 +198,7 @@ end
 %% correlation
 subsetHGsignal = HGPowerMeanTotal(tMorlet>=tBeginSub & tMorlet <= tEndSub,:);
 [c,lags] = xcorr(subsetHGsignal,'biased');
-lags = 1e3*10*lags/fsData ;
+lags = 10*lags ;
 cMat = reshape(c,length(lags),size(subsetHGsignal,2),[]); % now the second dimension has the cov between the channel in the 3rd dimension and all others
 
 %% get normal differences
@@ -214,7 +214,7 @@ cMax = squeeze(cMax);
 lagsMax = squeeze(lagsMax);
 
 figure
-subplot(2,1,1)
+subplot(1,2,1)
 imagesc(cMax)
 set(gca,'fontsize',16)
 title('Maximum cross-correlation coefficient')
@@ -223,7 +223,7 @@ ylabel('Channel')
 colormap(gca,pink)
 colorbar()
 
-subplot(2,1,2)
+subplot(1,2,2)
 imagesc(lagsMax)
 xlabel('Channel')
 ylabel('Channel')
@@ -263,7 +263,7 @@ subplot(3,1,3)
 plot(lags,cMat(:,chanInt1,chanInt2),'linewidth',3);
 set(gca,'fontsize',16)
 vline(lagsMaxTrial,'black')
-title(['Cross-correlation between grid channel ' num2str(chanInt1) ' and RPT 6'])
+title(['Cross-correlation between grid channel ' num2str(chanInt1) ' and RPT 7'])
 
 
 set(gca,'fontsize',16)
