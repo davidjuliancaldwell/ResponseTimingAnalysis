@@ -18,7 +18,7 @@ sid = SIDS{4};
 for s = 1:2
 % load in data
 if (strcmp(sid, '2fd831'))
-    folder_data = strcat(DATA_DIR,'\2fd831');
+        folder_data = strcat(DATA_DIR,'\',sid);
     
     if s == 1
         load(fullfile(folder_data,'ResponseTiming-1.mat'))

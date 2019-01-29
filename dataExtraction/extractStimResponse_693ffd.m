@@ -19,7 +19,7 @@ sid = SIDS{3};
 for s = 1:2
 % load in data
 if (strcmp(sid, '693ffd'))
-    folder_data = strcat(DATA_DIR,'\693ffd');
+        folder_data = strcat(DATA_DIR,'\',sid);
     
     if s == 1
         load(fullfile(folder_data,'ReactionTime_693ffd-2.mat'))
@@ -90,7 +90,7 @@ respHi = 1;
 current_direc = pwd;
 
 %save(fullfile(current_direc, [sid '_compareResponse_block_tactorSub' block '.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
-save(fullfile(current_direc, [sid '_compareResponse_block_' block '_changePts_noDelay.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
+%save(fullfile(current_direc, [sid '_compareResponse_block_' block '_changePts_noDelay.mat']),'buttonTactDiffSamps','buttonLocsSamps','s','block','sid','buttonLocs','tactorLocsVec','tEpoch','stimTimes','fsStim','epochedButton','epochedTactor','condType','uniqueCond', 'respLo','respHi');
 
 %clearvars -except buttonTactDiffSamps buttonLocSamps s buttonLocs block tEpoch stimTimes fs_stim epochedButton tactorLocsVec epochedTactor condType uniqueCond respLo respHi SIDS DATA_DIR sid
 

@@ -6,7 +6,7 @@ Z_ConstantsStimResponse;
 subjdir = getenv('SUBJECT_DIR');
 DATA_DIR = fullfile(subjdir,'\ConvertedTDTfiles');
 
-sid = SIDS{6};
+sid = SIDS{7};
 %
 % % ui box for input
 % list_str = {'1st block','2nd block'};
@@ -15,17 +15,16 @@ sid = SIDS{6};
 %     'SelectionMode','single',...
 %     'ListString',list_str);
 
-for s = 1:2
+for s = 2:2
     % load in data
+    if (strcmp(sid, '822e26'))
         folder_data = strcat(DATA_DIR,'\',sid);
-
-    if (strcmp(sid, '3ada8b'))
         
         if s == 1
-            load(fullfile(DATA_DIR,'responseTiming-1.mat'))
+            load(fullfile(folder_data,'responseTiming-2.mat'))
             block = '1';
         elseif s == 2
-            load(fullfile(DATA_DIR,'responseTiming-2.mat'))
+            load(fullfile(folder_data,'responseTiming-5.mat'))
             block = '2';
         end
         
@@ -38,25 +37,11 @@ for s = 1:2
     clear Stim Tact Sing
     
     %% figure out stim times
-    % vector of condition type - for first subject, looks like condition type
-    % is what was used , rather than test_condition
-    if s == 1
-        folder = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d9\used_5_16_2018_RT_first_block';
-        
-    elseif s == 2
-        folder = 'C:\Users\djcald.CSENETID\Data\Subjects\3ada8b\data\d9\used_5_16_2018_RT_second_block';
-        
-    end
     
+    folder  = 'C:\Users\david\Data\Subjects\822e26\822e26_responseTiming';
     primedOption = dlmread(fullfile(folder,'rxnTime_primingOption_1_priming_5_cond.txt'));
     condType= dlmread(fullfile(folder,'rxnTime_condition_1_priming_5_cond.txt'));
     train = dlmread(fullfile(folder,'rxnTime_stimTrainDelivery_1_priming_5_cond.txt'));
-    
-    if s == 2 % only did 40 trials
-        primedOption = primedOption(1:40);
-        condType = condType(1:40);
-        train = train(1:40);
-    end
     
     [trainTimesTotal,stimFromFile,trainTimes,condType,uniqueCond] = extract_stimulation_times(tact,condType);
     
@@ -84,13 +69,13 @@ for s = 1:2
     
     %% quantifying data
     
-    [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton,epochedTactor,buttonTactDiffSamps] = get_response_timing_segs(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
+    [buttonLocs,buttonLocsSamps,tactorLocsVec,tactorLocsVecSamps,tEpoch,epochedButton,epochedTactor,buttonTactDiffSamps] = get_response_timing_segs_newTactor(tactorData,uniqueCond,stim,buttonData,stimFromFile,fsStim,fsTact,trainTimesTotal,plotIt);
     %% get ISI info
     
     %[ISICellSamps,ISICellSeconds,ISICondBefore,ISICellSampsNoNuOt,ISICellSecondsNoNuOt,ISIcondBeforeNoNuOt] = get_ISI(condType,uniqueCond,tactorLocsVecSamps,stimFromFile,fsStim,trainTimesTotal,trainTimes);
     %% look at RT vs ISI
     
-   % [mdl,mdlNoNuOt] = compare_resp_times_ISI(uniqueCond,buttonLocs,ISICellSecondsNoNuOt,ISICellSeconds);
+    % [mdl,mdlNoNuOt] = compare_resp_times_ISI(uniqueCond,buttonLocs,ISICellSecondsNoNuOt,ISICellSeconds);
     %% save it
     saveIt = 1;
     

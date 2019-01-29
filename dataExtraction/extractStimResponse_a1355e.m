@@ -15,7 +15,7 @@ for s = 2:3
     
     % load in data
     if (strcmp(sid, 'a1355e'))
-        folder_data = strcat(DATA_DIR,'\2fd831');
+        folder_data = strcat(DATA_DIR,'\',sid);
         if s==1
             load(fullfile(DATA_DIR,'ResponseTiming-1.mat'))
             block = '1';
@@ -29,7 +29,7 @@ for s = 2:3
         
     end
     
-   
+    
     plotIt = 1;
     %% load in data of interest
     
@@ -44,20 +44,20 @@ for s = 2:3
     % is what was used , rather than test_condition, BOTH blocks used the same
     % file
     if s==1
-    condType= dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_condition_1_modified_9_23_2016.txt');
-    train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_stimTrainDelivery_1.txt');
+        condType= dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_condition_1_modified_9_23_2016.txt');
+        train = dlmread('C:\Users\djcald.CSENETID\SharedCode\StimulationResponseTimingAnalysis\2fd831\rxnTime_stimTrainDelivery_1.txt');
     elseif s==2 || s ==3
-            condType = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_condition_primingPilot.txt');
-    primedOption = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_primedOption_primingPilot.txt');
-    train = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_stimTrainDelivery_primingPilot.txt');
-  condType = primedOption;
-  condType = condType + 2; % modify it up by two so it goes from [0 0 1 1 ...] to [2 2 2 3 3 3] and works with the normal code
+        condType = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_condition_primingPilot.txt');
+        primedOption = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_primedOption_primingPilot.txt');
+        train = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_stimTrainDelivery_primingPilot.txt');
+        condType = primedOption;
+        condType = condType + 2; % modify it up by two so it goes from [0 0 1 1 ...] to [2 2 2 3 3 3] and works with the normal code
     end
-            
+    
     % for this subject, on the 1st/2nd block, seems to only be 139 trials
     % for the 1st block, this dropped a no stim
     if s==1
-    condType = condType(1:139);
+        condType = condType(1:139);
     end
     
     [trainTimesTotal,stimFromFile,trainTimes,condType,uniqueCond] = extract_stimulation_times(tact,condType);

@@ -17,7 +17,7 @@ DATA_DIR = fullfile(subjdir,'\ConvertedTDTfiles');
 for s = 1:2
     % load in data
     if (strcmp(sid, 'c19968'))
-        folder_data = strcat(DATA_DIR,'\c19968');
+        folder_data = strcat(DATA_DIR,'\',sid);
         
         if s == 1
             load(fullfile(folder_data,'ReactionTime_c19968-7.mat'))
@@ -35,7 +35,7 @@ for s = 1:2
         
     end
     
-    plotIt = 0;
+    plotIt = 1;
     
     %% load in data of interest
     
