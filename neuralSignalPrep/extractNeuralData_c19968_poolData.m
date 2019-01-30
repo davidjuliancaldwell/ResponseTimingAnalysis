@@ -13,7 +13,7 @@ for s = sVec
     
     % load in data
     if (strcmp(sid, 'c19968'))
-        folder_data = strcat(DATA_DIR,'\c19968');
+        folder_data = strcat(dataDirTotal,'\c19968');
         
         if s == 1
             load(fullfile(folder_data,'ReactionTime_c19968-7.mat'))
@@ -33,7 +33,7 @@ for s = sVec
     end
     
     %% neural data
-    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR s sVec folder_data epochedCortEco_cell
+    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR dataDirTotal s sVec folder_data epochedCortEco_cell
     eco1 = ECO1.data;
     fsData = ECO1.info.SamplingRateHz;
     ecoFs = fsData;
@@ -135,7 +135,7 @@ for s = sVec
             response = buttonLocsThresh{i};
             responseSamps = round(tactorLocsVec*ecoFs);
             
-            adjustTact = 1;
+            adjustTact = 0;
             if adjustTact  == 1
                 responseSamps = responseSamps - (ecoFs*9/1e3);
             end

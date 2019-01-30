@@ -3,7 +3,7 @@
 %%
 Z_ConstantsStimResponse;
 
-dataDirTotal = fullfile(DATA_DIR,'ConvertedTDTfiles'); 
+dataDirTotal = fullfile(DATA_DIR,'ConvertedTDTfiles');
 
 sid = SIDS{4};
 s_vec = [1,2];
@@ -11,7 +11,7 @@ s_vec = [1,2];
 for s = s_vec
     % load in data
     if (strcmp(sid, '2fd831'))
-        folder_data = strcat(DATA_DIR,'\2fd831');
+        folder_data = strcat(dataDirTotal,'\2fd831');
         
         if s == 1
             load(fullfile(folder_data,'ResponseTiming-1.mat'))
@@ -25,10 +25,13 @@ for s = s_vec
     %% neural data
     
     % the eco data is crashing it right now
-    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR s s_vec folder_data epochedCortEco_cell
+    clearvars -except ECO1 ECO2 ECO3 Tact sid block s dataDirTotal DATA_DIR s s_vec folder_data epochedCortEco_cell
     eco1 = ECO1.data;
     fs_data = ECO1.info.SamplingRateHz;
+    fsData = fs_data;
+    
     eco_fs = fs_data;
+    ecosFs = eco_fs;
     clear ECO1
     eco2 = ECO2.data;
     clear ECO2
@@ -135,11 +138,10 @@ for s = s_vec
             response = buttonLocsThresh{i};
             responseSamps = round(tactorLocsVec*eco_fs);
             
-            adjustTact = 1;
+            adjustTact = 0;
             if adjustTact  == 1
                 responseSamps = responseSamps - (ecoFs*9/1e3);
-            end
-            
+            end         
             
             % 11-3-2017 - account for nan's in response_samps vector
             response_mask = (~isnan(responseSamps));

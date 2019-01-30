@@ -26,9 +26,10 @@ for s = s_vec
     %% neural data
     
     % the eco data is crashing it right now
-    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR s s_vec folder_data epochedCortEco_cell
+    clearvars -except ECO1 ECO2 ECO3 Tact sid block s DATA_DIR dataDirTotal s s_vec folder_data epochedCortEco_cell
     eco1 = ECO1.data;
     fs_data = ECO1.info.SamplingRateHz;
+    fsData = fs_data;
     ecoFs = fs_data;
     clear ECO1
     eco2 = ECO2.data;
@@ -138,7 +139,7 @@ for s = s_vec
             response = buttonLocsThresh{i};
             responseSamps = round(tactorLocsVec*ecoFs);
             
-                   adjustTact = 1;
+                   adjustTact = 0;
             if adjustTact  == 1
                 responseSamps = responseSamps - (ecoFs*9/1e3);
             end
