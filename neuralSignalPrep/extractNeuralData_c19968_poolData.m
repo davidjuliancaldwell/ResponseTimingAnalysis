@@ -3,10 +3,8 @@
 % this data is DC coupled
 %%
 Z_ConstantsStimResponse;
-% add path for scripts to work with data tanks
-addpath('./scripts')
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
+dataDirTotal = fullfile(DATA_DIR,'ConvertedTDTfiles'); 
 sid = SIDS{2};
 
 sVec = [1,2];
@@ -71,7 +69,7 @@ for s = sVec
     
     clearvars data_int f_y p s mu
     %%
-    load([sid,'_compareResponse_block_tactorSub',block,'.mat'])
+    load([sid,'_compareResponse_block_',block,'_changePts_noDelay.mat'])
     
     %% get train times
     
@@ -155,6 +153,6 @@ end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fsData','tEpoch');
+save(fullfile(current_direc, [sid 'pooledData_changePts_noDelay.mat']),'-v7.3','epochedCortEco_cell','fsData','tEpoch');
 
 return

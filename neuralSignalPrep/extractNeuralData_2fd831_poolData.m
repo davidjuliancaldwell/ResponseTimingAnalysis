@@ -2,12 +2,10 @@
 
 %%
 Z_ConstantsStimResponse;
-% add path for scripts to work with data tanks
-addpath('./scripts')
 
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
+dataDirTotal = fullfile(DATA_DIR,'ConvertedTDTfiles'); 
+
 sid = SIDS{4};
-
 s_vec = [1,2];
 
 for s = s_vec
@@ -22,7 +20,6 @@ for s = s_vec
             load(fullfile(folder_data,'ResponseTiming-2.mat'))
             block = '2';
         end
-        
     end
     
     %% neural data
@@ -38,7 +35,6 @@ for s = s_vec
     
     eco3 = ECO3.data;
     clear ECO3
-    
     
     data = [eco1 eco2 eco3];
     clearvars eco1 eco2 eco3
@@ -72,7 +68,8 @@ for s = s_vec
     %%
     clearvars data_int f_y p s mu
     %%
-    load([sid,'_compareResponse_block_tactorSub',block,'.mat'])
+    %   load([sid,'_compareResponse_block_tactorSub',block,'.mat'])
+    load([sid,'_compareResponse_block_',block,'_changePts_noDelay.mat'])
     
     %% get train times
     
@@ -138,7 +135,7 @@ for s = s_vec
             response = buttonLocsThresh{i};
             responseSamps = round(tactorLocsVec*eco_fs);
             
-                   adjustTact = 1;
+            adjustTact = 1;
             if adjustTact  == 1
                 responseSamps = responseSamps - (ecoFs*9/1e3);
             end
@@ -159,7 +156,8 @@ end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+%save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+save(fullfile(current_direc, [sid 'pooledData_changePts_noDelay.mat']),'-v7.3','epochedCortEco_cell','fsData','tEpoch');
 
 return
 

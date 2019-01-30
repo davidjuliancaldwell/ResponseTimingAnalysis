@@ -26,11 +26,11 @@ for sid = SIDSint
     %%
     sid = sid{:};
     if sum(strcmp(sid,SIDSprimed)) == 0
-        DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\pooled_RT_data';
+        DATA_DIR = 'C:\Users\david\Data\ConvertedTDTfiles\pooled_RT_data';
         load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
         
     elseif sum(strcmp(sid,SIDSprimed)) == 1
-        DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles\priming_data';
+        DATA_DIR = 'C:\Users\david\Data\ConvertedTDTfiles\priming_data';
         load(fullfile(DATA_DIR,[sid '_priming_neural_block_' num2str(primedBlock) '.mat']));
         t_epoch = tEpoch;
         fs_data = fsData;

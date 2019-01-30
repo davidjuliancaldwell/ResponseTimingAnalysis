@@ -5,3 +5,4 @@ TouchDir(OUTPUT_DIR);
 META_DIR = fullfile(myGetenv('OUTPUT_DIR'), 'stimResponse', 'meta');
 TouchDir(META_DIR);
 
+DATA_DIR = myGetenv('subject_dir');

@@ -1,45 +1,27 @@
 %% look at the neural data in response to cortical stimulation
 
-
 Z_ConstantsStimResponse;
-% add path for scripts to work with data tanks
-addpath('./scripts')
-%addpath('./scripts/JennysConversionScripts')
 
-% subject directory, change as needed
-% SUB_DIR = fullfile(myGetenv('subject_dir')); - for David's PC right now
-
-% data directory
-
-%PUT PATH TO DATA DIRECTORY WITH CONVERTED DATA FILES
-
-% DJC Desktop
-DATA_DIR = 'C:\Users\djcald.CSENETID\Data\ConvertedTDTfiles';
+dataDirTotal = fullfile(DATA_DIR,'ConvertedTDTfiles'); 
 sid = SIDS{3};
 
 s_vec = [1,2];
 
 for s = s_vec
-    
     % load in data
     if (strcmp(sid, '693ffd'))
-        folder_data = strcat(DATA_DIR,'\693ffd');
+        folder_data = strcat(dataDirTotal,'\693ffd');
         
         if s == 1
             load(fullfile(folder_data,'ReactionTime_693ffd-2.mat'))
             block = '1';
         elseif s == 2
             load(fullfile(folder_data,'ReactionTime_693ffd-4.mat'))
-            block = '2';
-            
-            
-        end
-        
+            block = '2';             
+        end       
     end
-    
     % On-target stim: 20, 29 active
     % Off-target stim: 57 active -58  ground
-    
     
     %% neural data
     
@@ -53,9 +35,7 @@ for s = s_vec
     clear ECO2
     
     eco3 = ECO3.data;
-    clear ECO3
-    
-    
+
     data = [eco1 eco2 eco3];
     clearvars eco1 eco2 eco3
     
@@ -77,7 +57,6 @@ for s = s_vec
     order_poly = 10;
     data = polyfitSubtract(data,order_poly);
     
-    
     % for i = 1:size(data,2)
     %
     %     data_int = data(:,i);
@@ -92,7 +71,8 @@ for s = s_vec
     
     clearvars data_int f_y p s mu
     %%
-    load([sid,'_compareResponse_block_tactorSub',block,'.mat'])
+  %  load([sid,'_compareResponse_block_tactorSub',block,'.mat'])
+    load([sid,'_compareResponse_block_',block,'_changePts_noDelay.mat'])
     
     %% get train times
     
@@ -176,7 +156,8 @@ end
 
 current_direc = pwd;
 
-save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+%save(fullfile(current_direc, [sid 'pooledData_tactorSub_10ms.mat']),'-v7.3','epochedCortEco_cell','fs_data','t_epoch');
+save(fullfile(current_direc, [sid 'pooledData_changePts_noDelay.mat']),'-v7.3','epochedCortEco_cell','fsData','tEpoch');
 
 return
 
