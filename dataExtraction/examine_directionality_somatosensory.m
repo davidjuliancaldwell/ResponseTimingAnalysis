@@ -19,7 +19,7 @@ tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
 % normalize data
 dataRefTactorTotal = poweroutTactorTotal(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %
-[normalizedDataTactorTotal] = normalize_spectrogram(dataRefTactorTotal,poweroutTactorTotal);
+[normalizedDataTactorTotal] = normalize_spectrogram_wavelet(dataRefTactorTotal,poweroutTactorTotal);
 %%
 individual = 0;
 average = 1;

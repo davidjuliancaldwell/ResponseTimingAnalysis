@@ -94,8 +94,8 @@ set(gca,'fontsize',20)
 dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %
 dataRefTactor = poweroutTactor(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
-[normalizedData] = normalize_spectrogram(dataRef,powerout);
-[normalizeDataTactor] = normalize_spectrogram(dataRefTactor,poweroutTactor);
+[normalizedData] = normalize_spectrogram_wavelet(dataRef,powerout);
+[normalizeDataTactor] = normalize_spectrogram_wavelet(dataRefTactor,poweroutTactor);
 
 %%
 % chanIntList = chanInt;

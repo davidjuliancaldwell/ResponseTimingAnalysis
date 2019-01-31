@@ -31,7 +31,8 @@ for s = s_vec
     fsData = fs_data;
     
     eco_fs = fs_data;
-    ecosFs = eco_fs;
+    ecoFs = eco_fs;
+    
     clear ECO1
     eco2 = ECO2.data;
     clear ECO2

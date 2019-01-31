@@ -281,7 +281,7 @@ for sid = SIDSint
         % normalize data
         dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
         %
-        [normalizedData] = normalize_spectrogram(dataRef,powerout);
+        [normalizedData] = normalize_spectrogram_wavelet(dataRef,powerout);
         individual = 0;
         average = 1;
         % chanIntLIst = 42;
