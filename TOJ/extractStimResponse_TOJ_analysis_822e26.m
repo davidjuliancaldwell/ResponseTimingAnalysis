@@ -40,10 +40,15 @@ if plotIt
 end
 %%
 % QUANTIFY RXN TIME TO CORTICAL STIM
-[stimTimes,trainTimes] = extract_stimulation_times_TOJ_readIn_v2(tact,fsStim,[]);
+[trainTimes,trainTimes] = extract_stimulation_times_TOJ_readIn_v2(tact,fsStim,[]);
+
+% the last 4 were not recorded on the TDT for which one came first 
+trainTimes = trainTimes(1:82); 
+trainTimes = trainTimes(1:82);
 %%
 [epochedTactor,epochedAudio,epochedStim,epochedButton,t,tSamps] = extract_epochs_TOJ(stim,tact,trainTimes,fsStim);
 % epoched button press
+
 
 %%
 % since the MATLAB file didn't save, have to compute it from the data
@@ -72,11 +77,11 @@ end
 
 %%
 
-[tactorLocsVec,stimLocsVec,buttonLocsVec,tactorStimDiff,responseTimes] = get_response_timing_segs_TOJ(epochedButton,epochedTactor,epochedStim,t,tSamps,numTrials);
+[tactorLocsVec,stimLocsVec,buttonLocsVec,tactorStimDiff,responseTimes] = get_response_timing_segs_TOJ_newTactor(epochedButton,epochedTactor,epochedStim,t,tSamps,numTrials);
 
 
 %%
-saveIt = 0;
+saveIt = 1;
 
 if saveIt
     current_direc = pwd;

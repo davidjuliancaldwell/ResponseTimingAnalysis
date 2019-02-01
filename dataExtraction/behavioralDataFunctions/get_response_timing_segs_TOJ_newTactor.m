@@ -1,5 +1,9 @@
 function [tactorLocsVec,stimLocsVec,buttonLocsVec,tactorStimDiff,responseTimes] = get_response_timing_segs_TOJ_newTactor(epochedButton,epochedTactor,epochedStim,t,tSamps,numTrials)
 
+
+tactThresh = 0.97;
+epochedTactor(epochedTactor > tactThresh) = tactThresh;
+
 for j = 1:numTrials
     
     [buttonPksTemp,buttonLocsTemp] = findpeaks((epochedButton(t>0,j)),t(t>0),'NPeaks',1,'Minpeakheight',3);
@@ -8,8 +12,9 @@ for j = 1:numTrials
     sprintf(['button ' num2str(buttonLocsTemp)])
     sprintf(['button ' num2str(buttonLocsTempSamps)])
     
-    [tactorPksTemp,tactorLocsTemp] = findpeaks((epochedTactor(:,j)),t,'NPeaks',1,'Minpeakheight',1);
-    [tactorPksTempSamps,tactorLocsTempSamps] = findpeaks((epochedTactor(:,j)),tSamps,'NPeaks',1,'Minpeakheight',1);
+    
+    [tactorPksTemp,tactorLocsTemp] = findpeaks((epochedTactor(:,j)),t,'NPeaks',1,'Minpeakheight',tactThresh-0.05);
+    [tactorPksTempSamps,tactorLocsTempSamps] = findpeaks((epochedTactor(:,j)),tSamps,'NPeaks',1,'Minpeakheight',tactThresh-0.05);
     
     sprintf(['tactor ' num2str(tactorLocsTemp)])
     sprintf(['tactor ' num2str(tactorLocsTempSamps)])
