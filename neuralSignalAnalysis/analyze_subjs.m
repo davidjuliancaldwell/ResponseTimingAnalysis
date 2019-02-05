@@ -61,10 +61,10 @@ for sid = SIDSint
     end
     % additional parameters
     postStim = 2000;
-    sampsPostStim = round(postStim/1e3*fs_data);
+    sampsPostStim = round(postStim/1e3*fsData);
     
     preStim = 1000;
-    sampsPreStim = round(preStim/1e3*fs_data);
+    sampsPreStim = round(preStim/1e3*fsData);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%
     switch sid
