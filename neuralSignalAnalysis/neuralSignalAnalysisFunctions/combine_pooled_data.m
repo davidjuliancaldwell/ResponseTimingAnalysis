@@ -7,8 +7,9 @@ data = {};
 tEpochGood = tEpoch;
 
 for i = block
-    load([sid,'_compareResponse_block_',num2str(i),'_changePts_tactorSub .mat'])
-    
+   % load([sid,'_compareResponse_block_',num2str(i),'_changePts_tactorSub .mat'])
+      load([sid,'_compareResponse_block_',num2str(i),'_changePts_noDelay.mat'])
+
     buttonLocsSampsCellInd{i} = buttonLocsSamps; % samples
     buttonLocsCellInd{i} = buttonLocs; % seconds
 end

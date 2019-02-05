@@ -17,21 +17,23 @@ SIDSblocked = {'c19968','693ffd','2fd831'};
 SIDSprimed = {'a1355e','3ada8b'};
 
 % 3ada8b has been multiplied by 4 in the neural analysis prep
-SIDSint = {'3ada8b'};
+SIDSint = {'693ffd'};
 
-primedBlock = 1;
+primedBlock = 0;
 reref = 0;
 %%
 for sid = SIDSint
     %%
     sid = sid{:};
     if sum(strcmp(sid,SIDSprimed)) == 0
-        DATA_DIR = 'C:\Users\david\Data\ConvertedTDTfiles\pooled_RT_data';
-        load(fullfile(DATA_DIR,[sid 'pooledData_tactorSub.mat']));
+        DATA_DIR = 'C:\Users\david\Data\Subjects\ConvertedTDTfiles\pooled_RT_data';
+        load(fullfile(DATA_DIR,[sid 'pooledData_changePts_noDelay.mat']));
         
     elseif sum(strcmp(sid,SIDSprimed)) == 1
-        DATA_DIR = 'C:\Users\david\Data\ConvertedTDTfiles\priming_data';
+        DATA_DIR = 'C:\Users\david\Data\Subjects\ConvertedTDTfiles\priming_data';
+        % load(fullfile(DATA_DIR,[sid '_priming_neural_block_' num2str(primedBlock) '.mat']));
         load(fullfile(DATA_DIR,[sid '_priming_neural_block_' num2str(primedBlock) '.mat']));
+        
         t_epoch = tEpoch;
         fs_data = fsData;
         if strcmp(sid,'a1355e')
@@ -42,14 +44,20 @@ for sid = SIDSint
         
     end
     
-    fsData = fs_data;
+    if ~exist('fsData','var')
+        fsData = fs_data;
+    end
     %% combine the pooled data
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+     
+    if ~exist('tEpoch','var')
+        tEpoch = t_epoch;
+    end
     
     if any(strcmp(SIDSblocked,sid))
-        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data(sid,epochedCortEco_cell,t_epoch);
+        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data(sid,epochedCortEco_cell,tEpoch);
     elseif any(strcmp(SIDSprimed,sid))
-        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,t_epoch,behaviorFileName);
+        [buttonLocsSamps,buttonLocs,data,tEpoch,uniqueCond] = combine_pooled_data_singleBlock(sid,epochedCortEco_cell,tEpoch,behaviorFileName);
     end
     % additional parameters
     postStim = 2000;
@@ -82,7 +90,7 @@ for sid = SIDSint
             stimChans = [4 3 24 32];
             
             chanInt = 11;
-            chanIntList = [1 2 3 4 5 12 13 30 33 45 51 52 53 54 61 62];  
+            chanIntList = [1 2 3 4 5 12 13 30 33 45 51 52 53 54 61 62];
     end
     
     trainDuration = [];
@@ -91,8 +99,8 @@ for sid = SIDSint
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%
     % params for DBSscan optimization
-   % bracketRange = [-5:12]; 
-    bracketRange = [-8:8]; % 11/1/2018 
+    % bracketRange = [-5:12];
+    bracketRange = [-8:8]; % 11/1/2018
     
     type = 'dictionary';
     
@@ -145,7 +153,7 @@ for sid = SIDSint
     %      5
     %      6 - this is the 2 pulses in isolation
     
-    for condInt = 4:4
+    for condInt = 1:1
         %   condInt = 2;
         condIntAns = uniqueCond(condInt);
         dataInt = data{condInt};
@@ -176,7 +184,7 @@ for sid = SIDSint
                     dataInt(:,ii,:) = polyfit_subtract(squeeze(dataInt(:,ii,:)),orderPoly);
                 end
             end
-      
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(dataInt,'type',type,...
                 'fs',fsData,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
@@ -196,15 +204,18 @@ for sid = SIDSint
                     processedSig(:,ii,:) = polyfit_subtract(squeeze(dataInt(:,ii,:)),orderPoly);
                 end
             else
-                processedSig = dataInt;             
+                processedSig = dataInt;
             end
             %stimTime = 1e3*tactorLocsVec; %
             stimTime = zeros(size(processedSig,3),1); % it is centered around zero now
-            t = t_epoch;
+            t = tEpoch;
         end
         
         %  response = response(~isnan(response));
+        % this selects ones with a response time between 0.15 and 1
         responseBool = (response > 0.15 & response<1);
+        
+        % this selects trials with all response times 
         responseBool = logical(ones(size(response)));
         
         response = response(responseBool);
@@ -267,7 +278,7 @@ for sid = SIDSint
         return
         
         %% wavelet and plv
-   
+        
         %%%%%% PLV
         freqRange = [8 12];
         %[plv] = plvWrapper(processedSig,fsData,freqRange,stimChans);
@@ -288,7 +299,7 @@ for sid = SIDSint
         
         % chanIntList = chanInt;
         for chanInt = chanIntList
-            visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
+            vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
                 tEpoch,dataInt,chanInt,stimTime,response,individual,average)
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
