@@ -153,7 +153,7 @@ for s = s_vec
         
         epochedCortEco_cell{s}{i} = epochedCortEco;
     end
-    t_epoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
+    tEpoch = (-sampsPreStim:sampsPostStim-1)/ecoFs;
     
 end
 

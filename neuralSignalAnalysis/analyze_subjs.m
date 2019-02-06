@@ -1,7 +1,7 @@
 %% 5.12.2018 - David J. Caldwell
 % analyze different response timing subjects one at a time
 
-close all; clearvars ; clc
+%close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
@@ -17,7 +17,7 @@ SIDSblocked = {'c19968','693ffd','2fd831'};
 SIDSprimed = {'a1355e','3ada8b'};
 
 % 3ada8b has been multiplied by 4 in the neural analysis prep
-SIDSint = {'693ffd'};
+SIDSint = {'2fd831'};
 
 primedBlock = 0;
 reref = 0;
@@ -119,8 +119,6 @@ for sid = SIDSint
     post = 0.8;
     post = 1;
     
-    
-    
     % before 8.31.2018 was 0.8
     
     % these are the metrics used if the dictionary method is selected. The
@@ -153,7 +151,7 @@ for sid = SIDSint
     %      5
     %      6 - this is the 2 pulses in isolation
     
-    for condInt = 1:1
+    for condInt = 6:6
         %   condInt = 2;
         condIntAns = uniqueCond(condInt);
         dataInt = data{condInt};
@@ -275,7 +273,7 @@ for sid = SIDSint
         
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
-        return
+        
         
         %% wavelet and plv
         
@@ -286,7 +284,9 @@ for sid = SIDSint
         timeRes = 0.01; % 25 ms bins
         
         % [powerout,fMorlet,tMorlet] = wavelet_wrapper(processedSig,fsData,stimChans);
-        [powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,fsData,timeRes,stimChans);
+       % [powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,fsData,timeRes,stimChans);
+        [powerout,fMorlet,tMorlet,~] = analyFunc.waveletWrapper(processedSig,fsData,timeRes,stimChans);
+
         %
         tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
         % normalize data
@@ -296,11 +296,14 @@ for sid = SIDSint
         individual = 0;
         average = 1;
         % chanIntLIst = 42;
-        
+        %%
         % chanIntList = chanInt;
         for chanInt = chanIntList
-            vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
-                tEpoch,dataInt,chanInt,stimTime,response,individual,average)
+            %visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
+              %  tEpoch,dataInt,chanInt,stimTime,response,individual,average)
+            
+                  vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
+                tEpoch,dataInt,chanInt,individual,average)
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         
