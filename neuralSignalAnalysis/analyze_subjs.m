@@ -1,7 +1,7 @@
 %% 5.12.2018 - David J. Caldwell
 % analyze different response timing subjects one at a time
 
-%close all; clearvars ; clc
+close all; clearvars ; clc
 Z_ConstantsStimResponse;
 % add path for scripts to work with data tanks
 
@@ -17,7 +17,7 @@ SIDSblocked = {'c19968','693ffd','2fd831'};
 SIDSprimed = {'a1355e','3ada8b'};
 
 % 3ada8b has been multiplied by 4 in the neural analysis prep
-SIDSint = {'2fd831'};
+SIDSint = {'693ffd'};
 
 primedBlock = 0;
 reref = 0;
@@ -151,7 +151,7 @@ for sid = SIDSint
     %      5
     %      6 - this is the 2 pulses in isolation
     
-    for condInt = 6:6
+    for condInt = 1:1
         %   condInt = 2;
         condIntAns = uniqueCond(condInt);
         dataInt = data{condInt};
