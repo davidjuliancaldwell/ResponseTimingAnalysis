@@ -41,12 +41,12 @@ for i = 1:numTrials
         dataTempChan = squeeze(signalTemp(:,j,i));
         [powerOut_temp,f,coi] = cwt(dataTempChan,fs,'amor','frequencyLimits',freqLimits);
         [minf,maxf] = cwtfreqbounds(numel( dataTempChan ),fs,'wavelet','amor');
-numfreq = 10;
-freq = logspace(log10(minf/1e3),log10(maxf/1e3),numfreq);
+        numfreq = 10;
+        freq = logspace(log10(minf/1e3),log10(maxf/1e3),numfreq);
         AX = gca;
-AX.YTickLabelMode = 'auto';
-AX.YTick = freq;
-
+        AX.YTickLabelMode = 'auto';
+        AX.YTick = freq;
+        
         [powerout_temp2, f, t] = morletprocess(dataTempChan, fs, timeRes);
         poweroutTemp(:,:,:,i) = powerout_temp;
     end

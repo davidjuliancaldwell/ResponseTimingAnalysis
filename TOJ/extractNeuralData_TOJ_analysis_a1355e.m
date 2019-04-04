@@ -83,19 +83,12 @@ trainDuration = [0 500]; % this is how long the stimulation train was
 xlims = [-200 2000]; % these are the x limits to visualize in plots
 chanIntList = [7 8 15 23 31 32 39 40 47 48];
 %chanIntList = [8 31 32];
-% these are the channels of interest to visualize in closer detail
-minDuration = 0.5; % minimum duration of artifact in ms
-
+%% parameters
 type = 'dictionary';
 
 useFixedEnd = 0;
-%fixedDistance = 2;
-fixedDistance = 4; % in ms
+fixedDistance = 4;
 plotIt = 0;
-
-%pre = 0.4096; % in ms
-%post = 0.4096; % in ms
-
 pre = 0.8; % started with 1
 post = 1; % started with 0.2
 % 2.8, 1, 0.5 was 3/19/2018
@@ -103,19 +96,35 @@ post = 1; % started with 0.2
 % these are the metrics used if the dictionary method is selected. The
 % options are 'eucl', 'cosine', 'corr', for either euclidean distance,
 % cosine similarity, or correlation for clustering and template matching.
-
-distanceMetricDbscan = 'cosine';
-distanceMetricSigMatch = 'eucl';
+distanceMetricDbscan = 'eucl';
+distanceMetricSigMatch = 'corr';
 amntPreAverage = 3;
 normalize = 'preAverage';
 %normalize = 'firstSamp';
-
+minDuration = 0.5; % minimum duration of artifact in ms
+onsetThreshold = 1.5;
 recoverExp = 0;
-
+threshVoltageCut = 75;
+threshDiffCut = 75;
+expThreshVoltageCut = 95;
+expThreshDiffCut = 95;
+bracketRange = [-6:6];
+chanInt = 30;
+minPts = 2;
+minClustSize = 3;
+outlierThresh = 0.95;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(epochedECoG,'type',type,...
-    'fs',ecoFs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
+    'fs',ecoFs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
+    'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
     'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
-    'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,'minDuration',minDuration);
+    'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,...
+    'minDuration',minDuration,'bracketRange',bracketRange,'threshVoltageCut',threshVoltageCut,...
+    'threshDiffCut',threshDiffCut,'expThreshVoltageCut',expThreshVoltageCut,...
+    'expThreshDiffCut',expThreshDiffCut,'onsetThreshold',onsetThreshold,'chanInt',chanInt,...
+    'minPts',minPts,'minClustSize',minClustSize,'outlierThresh',outlierThresh);
+
 %%
 % visualization
 % of note - more visualizations are created here, including what the
@@ -134,25 +143,44 @@ vizFunc.multiple_visualizations(processedSig,epochedECoG,'fs',ecoFs,'type',type,
 freqRange = [8 12];
 [plv] = plvWrapper(processedSig,ecoFs,freqRange,stimChans);
 
-%%%%%%% wavelet
-timeRes = 0.050; % 50 ms bins
+% %%%%%%% wavelet
+% timeRes = 0.050; % 50 ms bins
+% 
+% [powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,ecoFs,timeRes,stimChans);
+% 
+% tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
+% 
+% 
+% % normalize data
+% dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
+% %
+% [normalizedData] = normalize_spectrogram_wavelet(dataRef,powerout);
 
-[powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,ecoFs,timeRes,stimChans);
 
-tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
+%%%%%% wavelet
+fprintf(['-------Beginning wavelet analysis-------- \n'])
 
+timeRes = 0.01; % 10 ms bins
 
+% [powerout,fMorlet,tMorlet] = wavelet_wrapper(processedSig,fsData,stimChans);
+[powerout,fMorlet,tMorlet,~] = analyFunc.waveletWrapper(processedSig,fsData,timeRes,stimChans);
+%
+fprintf(['-------Ending wavelet analysis-------- \n'])
+
+tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
 % normalize data
 dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %
-[normalizedData] = normalize_spectrogram_wavelet(dataRef,powerout);
+[normalizedData] = analyFunc.normalize_spectrogram_wavelet(dataRef,powerout);
+individual = 0;
+average = 1;
+
 
 %% Visualize wavelets
 
 % example wavelet decomp
 %trialInt = 20; % which channel to check out
 chanInt = 15;
-
 
 response = responseTimes;
 stimTime = zeros(size(response));
@@ -210,7 +238,6 @@ end
 avgPower = mean(powerout,4);
 smallMultiples_responseTiming_spectrogram(avgPower,tMorlet,fMorlet,'type1',stimChans,'type2',0,'average',1)
 
-
 %% Visualize PLV
 
 % chan 1 is the lower valued chan, so e.g., 17, 20
@@ -249,7 +276,6 @@ h.Limits = [0 1];
 xlabel('Channel')
 ylabel('Channel')
 title(['Max Phase Locking Value between T  = ' num2str(t1) ' seconds and T = ' num2str(t2) ' seconds'])
-
 
 return
 

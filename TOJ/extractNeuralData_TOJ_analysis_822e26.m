@@ -3,8 +3,8 @@ close all;clear all;clc
 Z_ConstantsStimResponse;
 
 subjdir = getenv('SUBJECT_DIR');
-sid = SIDS{6};
-DATA_DIR = fullfile(subjdir,sid,'\data\d10\MATLAB_conversions\3ada8b_TOJ');
+sid = SIDS{7};
+DATA_DIR = fullfile(subjdir,sid,'\data\MATLAB_converted\TOJ');
 % load in data
 folder_data = strcat(DATA_DIR);
 
@@ -69,8 +69,6 @@ trainDuration = [0 500]; % this is how long the stimulation train was
 xlims = [-200 2000]; % these are the x limits to visualize in plots
 chanIntList = [2 10 11 12 18 19 20 21 13 5 6 14 22];
 % these are the channels of interest to visualize in closer detail
-minDuration = 0.5; % minimum duration of artifact in ms
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% parameters
 type = 'dictionary';
@@ -90,7 +88,7 @@ distanceMetricSigMatch = 'corr';
 amntPreAverage = 3;
 normalize = 'preAverage';
 %normalize = 'firstSamp';
-
+minDuration = 0.5; % minimum duration of artifact in ms
 onsetThreshold = 1.5;
 recoverExp = 0;
 threshVoltageCut = 75;
