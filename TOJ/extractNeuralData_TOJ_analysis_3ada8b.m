@@ -97,8 +97,8 @@ threshVoltageCut = 75;
 threshDiffCut = 75;
 expThreshVoltageCut = 95;
 expThreshDiffCut = 95;
-bracketRange = [-6:6];
-chanInt = 30;
+bracketRange = [-2:6];
+chanInt = 12;
 minPts = 2;
 minClustSize = 3;
 outlierThresh = 0.95;
@@ -114,7 +114,7 @@ outlierThresh = 0.95;
     'expThreshDiffCut',expThreshDiffCut,'onsetThreshold',onsetThreshold,'chanInt',chanInt,...
     'minPts',minPts,'minClustSize',minClustSize,'outlierThresh',outlierThresh);
 
-%%
+%
 % visualization
 % of note - more visualizations are created here, including what the
 % templates look like on each channel, and what the discovered templates are
@@ -122,6 +122,8 @@ outlierThresh = 0.95;
 vizFunc.multiple_visualizations(processedSig,epochedECoG,'fs',ecoFs,'type',type,'tEpoch',...
     tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
     'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')
+
+return
 
 %% PROCESS THE DATA
 % process the wavelet using morlet process and PLV
