@@ -15,7 +15,7 @@ ECoG = 4*cat(2,ECO1.data,ECO2.data,ECO3.data);
 %tact = Tact.data;
 
 
-ecoFs = ECO1.info.SamplingRateHz;
+fsData = ECO1.info.SamplingRateHz;
 % fsStim = Stim.info.SamplingRateHz;
 % fsTact = Tact.info.SamplingRateHz;
 clearvars ECO1 ECO2 ECO3 Stim Tact
@@ -30,7 +30,7 @@ ECoG = ECoG(:,goodVec);
 
 % convert sampling rate
 
-% fac = fsTact/ecoFs;
+% fac = fsTact/fsData;
 fac = 2;
 
 stimChans = [4 3];
@@ -41,13 +41,13 @@ load(fullfile('3ada8b_TOJ_matlab.mat'));
 %% define what to epoch around for centering on stim trials
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-trainTimesConverted = round(trainTimes/fac) + round(ecoFs*0.8) ; % convert from the tactor sampling rate to the eco sampling rate, it is centered around the stim train
+trainTimesConverted = round(trainTimes/fac) + round(fsData*0.8) ; % convert from the tactor sampling rate to the eco sampling rate, it is centered around the stim train
 
 preTime = 1000; % ms
 postTime = 2000; % ms
-preSamps = round(preTime*ecoFs/1e3); % convert time to samps
-postSamps = round(postTime*ecoFs/1e3); % convert time to samps
-tEpoch = [-preSamps:postSamps-1]/ecoFs;
+preSamps = round(preTime*fsData/1e3); % convert time to samps
+postSamps = round(postTime*fsData/1e3); % convert time to samps
+tEpoch = [-preSamps:postSamps-1]/fsData;
 
 % get signal epochs
 epochedECoG = getEpochSignal(ECoG,trainTimesConverted -preSamps,trainTimesConverted +postSamps); % break up the ECoG into chunks
@@ -105,7 +105,7 @@ outlierThresh = 0.95;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
 [processedSig,templateDictCell,templateTrial,startInds,endInds] = analyFunc.template_subtract(epochedECoG,'type',type,...
-    'fs',ecoFs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
+    'fs',fsData,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,...
     'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
     'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
     'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,...
@@ -119,7 +119,7 @@ outlierThresh = 0.95;
 % of note - more visualizations are created here, including what the
 % templates look like on each channel, and what the discovered templates are
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vizFunc.multiple_visualizations(processedSig,epochedECoG,'fs',ecoFs,'type',type,'tEpoch',...
+vizFunc.multiple_visualizations(processedSig,epochedECoG,'fs',fsData,'type',type,'tEpoch',...
     tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
     'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')
 
@@ -131,13 +131,13 @@ return
 % trial by trial wavelet decomp, PLV
 
 %%%%%% PLV
-freqRange = [8 12];
-[plv] = plvWrapper(processedSig,ecoFs,freqRange,stimChans);
+%freqRange = [8 12];
+%[plv] = plvWrapper(processedSig,fsData,freqRange,stimChans);
 
 % %%%%%%% wavelet
 % timeRes = 0.050; % 50 ms bins
 %
-% [powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,ecoFs,timeRes,stimChans);
+% [powerout,fMorlet,tMorlet,~] = waveletWrapper(processedSig,fsData,timeRes,stimChans);
 %
 % tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
 %
@@ -155,8 +155,8 @@ timeRes = 0.01; % 10 ms bins
 [powerout,fMorlet,tMorlet,~] = analyFunc.waveletWrapper(processedSig,fsData,timeRes,stimChans);
 %
 fprintf(['-------Ending wavelet analysis-------- \n'])
-
-tMorlet = linspace(-preStim,postStim,length(tMorlet))/1e3;
+%%
+tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
 % normalize data
 dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 %
@@ -177,7 +177,7 @@ chanIntList = [1 2 3 4 5 12 13 30 33];
 trainDuration = [];
 modePlot = 'avg';
 xlims = [-200 1000];
-ylims = [-300 300];
+ylims = [-1 1];
 vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
 %%
@@ -207,7 +207,7 @@ vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimC
 sigShifted = nan(size(processedSig));
 for i = 1:length(tactorStimDiff)
     if ~isnan(tactorStimDiff(i))
-        sigShifted(:,:,i) = circshift(processedSig(:,:,i),-round(ecoFs*tactorStimDiff(i)),1);
+        sigShifted(:,:,i) = circshift(processedSig(:,:,i),-round(fsData*tactorStimDiff(i)),1);
     end
 end
 
@@ -235,7 +235,7 @@ set(gca,'fontsize',14)
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vizFunc.multiple_visualizations(sigShifted,epochedECoG,'fs',ecoFs,'type',type,'tEpoch',...
+vizFunc.multiple_visualizations(sigShifted,epochedECoG,'fs',fsData,'type',type,'tEpoch',...
     tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
     'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')
 
@@ -244,7 +244,7 @@ vizFunc.multiple_visualizations(sigShifted,epochedECoG,'fs',ecoFs,'type',type,'t
 sigShiftedReref = nan(size(processedSigReref));
 for i = 1:length(tactorStimDiff)
     if ~isnan(tactorStimDiff(i))
-        sigShiftedReref(:,:,i) = circshift(processedSigReref(:,:,i),-round(ecoFs*tactorStimDiff(i)),1);
+        sigShiftedReref(:,:,i) = circshift(processedSigReref(:,:,i),-round(fsData*tactorStimDiff(i)),1);
     end
 end
 
@@ -267,7 +267,7 @@ vizFunc.small_multiples_time_series(sigShiftedReref,tEpoch,'type1',stimChans,'ty
 %%%%%%% wavelet
 timeRes = 0.050; % 50 ms bins
 
-[poweroutShifted,fMorlet,tMorlet,~] = waveletWrapper(sigShifted,ecoFs,timeRes,stimChans);
+[poweroutShifted,fMorlet,tMorlet,~] = waveletWrapper(sigShifted,fsData,timeRes,stimChans);
 
 tMorlet = linspace(-preTime,postTime,length(tMorlet))/1e3;
 
@@ -306,13 +306,13 @@ vizFunc.small_multiples_spectrogram(normalizedDataShift,tMorlet,fMorlet,'type1',
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % not below here
 %%
-trainTimesTactor = trainTimes + round(tactorStimDiff*ecoFs)';
+trainTimesTactor = trainTimes + round(tactorStimDiff*fsData)';
 
 preTime = 1000; % ms
 postTime = 2000; % ms
-preSamps = round(preTime*ecoFs/1e3); % convert time to samps
-postSamps = round(postTime*ecoFs/1e3); % convert time to samps
-tEpoch = [-preSamps:postSamps-1]/ecoFs;
+preSamps = round(preTime*fsData/1e3); % convert time to samps
+postSamps = round(postTime*fsData/1e3); % convert time to samps
+tEpoch = [-preSamps:postSamps-1]/fsData;
 
 % get signal epochs
 epochedECoGTact = getEpochSignal(ECoG,trainTimesTactor-preSamps,trainTimesTactor+postSamps); % break up the ECoG into chunks
@@ -332,7 +332,7 @@ figure;
 desiredF = 10;
 period = 1/desiredF;
 time4oscil = period*4; % time total in seconds
-order = round(time4oscil*ecoFs);
+order = round(time4oscil*fsData);
 samps_discard = order;
 
 
@@ -401,7 +401,7 @@ normalize = 'preAverage';
 recoverExp = 0;
 
 [processedSigTact,templateDictCellTact,templateTrialTact,startIndsTact,endIndsTact] = analyFunc.template_subtract(epochedECoGTact,'type',type,...
-    'fs',ecoFs,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
+    'fs',fsData,'plotIt',plotIt,'pre',pre,'post',post,'stimChans',stimChans,'useFixedEnd',useFixedEnd,'fixedDistance',fixedDistance,...,
     'distanceMetricDbscan',distanceMetricDbscan,'distanceMetricSigMatch',distanceMetricSigMatch,...
     'recoverExp',recoverExp,'normalize',normalize,'amntPreAverage',amntPreAverage,'minDuration',minDuration);
 %
@@ -409,6 +409,6 @@ recoverExp = 0;
 % of note - more visualizations are created here, including what the
 % templates look like on each channel, and what the discovered templates are
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vizFunc.multiple_visualizations(processedSigTact,epochedECoGTact,'fs',ecoFs,'type',type,'tEpoch',...
+vizFunc.multiple_visualizations(processedSigTact,epochedECoGTact,'fs',fsData,'type',type,'tEpoch',...
     tEpoch,'xlims',xlims,'trainDuration',trainDuration,'stimChans',stimChans,...,
     'chanIntList',chanIntList,'templateTrial',templateTrial,'templateDictCell',templateDictCell,'modePlot','confInt')
