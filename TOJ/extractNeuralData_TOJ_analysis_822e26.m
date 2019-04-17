@@ -166,12 +166,12 @@ dataRef = powerout(:,tMorlet<0.05 & tMorlet>-0.8,:,:);
 individual = 0;
 average = 1;
 
-%% rereference
+% rereference
 rerefMode = 'mean';
 badChannels = stimChans;
 processedSigReref = rereference_CAR_median(processedSig,rerefMode,badChannels);
 
-%%
+% 
 individual = 0;
 average = 1;
 chanIntList = [1 2 3 4 5 12 13 30 33];
@@ -182,13 +182,13 @@ xlims = [-200 1000];
 ylims = [-300 300];
 vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'type2',0,'xlims',xlims,'ylims',ylims,'modePlot',modePlot,'highlightRange',trainDuration)
 
-%%
+%
 for chanInt = chanIntList
     vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
         tEpoch,epochedECoG,chanInt,individual,average)
 end
 
-%%
+%
 % stimTime = 0;
 % % chanIntList = chanInt;
 % for chanInt = chanIntList
@@ -201,7 +201,7 @@ HGPowerWavelet = squeeze(mean(squeeze(normalizedData(fMorlet < 150 & fMorlet > 7
 %
 vizFunc.small_multiples_spectrogram(normalizedData,tMorlet,fMorlet,'type1',stimChans,'type2',0,'xlims',xlims);
 
-%% process artifacts focused on tactor
+% process artifacts focused on tactor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % circular shift already processed signal
