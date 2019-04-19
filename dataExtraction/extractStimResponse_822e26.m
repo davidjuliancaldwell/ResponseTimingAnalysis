@@ -15,7 +15,7 @@ sid = SIDS{7};
 %     'SelectionMode','single',...
 %     'ListString',list_str);
 
-for s = 2:2
+for s = 1:2
     % load in data
     if (strcmp(sid, '822e26'))
         folder_data = strcat(DATA_DIR,'\',sid);
@@ -77,7 +77,7 @@ for s = 2:2
     
     % [mdl,mdlNoNuOt] = compare_resp_times_ISI(uniqueCond,buttonLocs,ISICellSecondsNoNuOt,ISICellSeconds);
     %% save it
-    saveIt = 1;
+    saveIt = 0;
     
     if saveIt
         current_direc = pwd;
