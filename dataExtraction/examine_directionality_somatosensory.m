@@ -41,9 +41,10 @@ for index = 2:length(Montage.Montage)
 end
 %%
 % chanIntList = chanInt;
+xlimsWave = [-200 1000];
 for chanInt = chanIntList
     visualize_wavelet_channel(normalizedDataTactorTotal,tMorlet,fMorlet,processedSigTactorTotal,...
-        tEpoch,epochedCortEcoTactorTotal,chanInt,stimTime,response,individual,average)
+        tEpoch,epochedCortEcoTactorTotal,chanInt,stimTime,response,individual,average,xlimsWave)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -303,7 +303,7 @@ for sid = SIDSint
               %  tEpoch,dataInt,chanInt,stimTime,response,individual,average)
             
                   vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
-                tEpoch,dataInt,chanInt,individual,average)
+                tEpoch,dataInt,chanInt,individual,average,xlims)
         end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         

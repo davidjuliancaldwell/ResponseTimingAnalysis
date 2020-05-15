@@ -40,9 +40,9 @@ for s = 2:2
     
     %% figure out stim times
     
-    condType = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_condition_primingPilot.txt');
-    primedOption = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_primedOption_primingPilot.txt');
-    train = dlmread('C:\Users\djcald.CSENETID\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_stimTrainDelivery_primingPilot.txt');
+    condType = dlmread('C:\Users\david\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_condition_primingPilot.txt');
+    primedOption = dlmread('C:\Users\david\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_primedOption_primingPilot.txt');
+    train = dlmread('C:\Users\david\Data\Subjects\a1355e\data\d7\Converted_Matlab\ResponseTiming\rxnTime_stimTrainDelivery_primingPilot.txt');
     
     [trainTimesTotal,stimFromFile,trainTimes,primedOption,uniqueCond] = extract_stimulation_times(tact,primedOption);
     

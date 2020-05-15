@@ -1,5 +1,6 @@
 % this is from my z_constants
 close all;clear all;clc
+saveIt = 0;
 Z_ConstantsStimResponse;
 
 subjdir = getenv('SUBJECT_DIR');
@@ -36,7 +37,6 @@ ECoG = ECoG(:,goodVec);
 fac = 2;
 
 stimChans = [63 62];
-
 
 load(fullfile('822e26_TOJ_matlab.mat'));
 
@@ -185,7 +185,7 @@ vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'
 %
 for chanInt = chanIntList
     vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
-        tEpoch,epochedECoG,chanInt,individual,average)
+        tEpoch,epochedECoG,chanInt,individual,average,xlims)
 end
 
 %
@@ -216,7 +216,10 @@ end
 avgResponseShift = nanmean(sigShifted,3);
 avgResponse = nanmean(processedSig,3);
 
+if saveIt
 save('822e26_processed_HDBSCAN.mat','-v7.3')
+end
+
 return
 %%
 chanInt = 30

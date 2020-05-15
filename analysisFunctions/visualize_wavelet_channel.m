@@ -1,10 +1,12 @@
-function [] = visualize_wavelet_channel(powerout,tMorlet,fMorlet,processedSig,tEpoch,dataInt,chanInt,stimTime,response,individual,average)
+function [] = visualize_wavelet_channel(powerout,tMorlet,fMorlet,processedSig,tEpoch,dataInt,chanInt,stimTime,response,individual,average,xlims)
 % set colormap using cbrewer
 %CT = cbrewer('div','RdBu',11);
 % flip it so red is increase, blue is down
 %CT = flipud(CT);
 load('america');
 CT = cm;
+xlimsVec = xlims
+ylimsVec = [0 200];
 if individual
     
     for i = 1:size(powerout,4)
@@ -13,8 +15,6 @@ if individual
         totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
         subplot(3,1,1);
         s = surf(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i),'edgecolor','none');
-        xlimsVec = [-200 1000];
-        ylimsVec = [0 200];
         %%Create vectors out of surface's XData and YData
         x=x(1,:);
         y=y(1,:);
@@ -61,7 +61,7 @@ if individual
         ylims = [-(max(abs(1e6*processedSig(:,chanInt,i))) + 10) (max(abs(1e6*processedSig(:,chanInt,i))) + 10)];
         ylim(ylims);
         ylim_h1 = ylims;
-        xlim([-200 1000]);
+        xlim(xlims);
         set(gca,'fontsize',14)
         
         h2 = subplot(3,1,3);
@@ -72,7 +72,7 @@ if individual
         title(['Raw Channel ' num2str(chanInt) ' Trial ' num2str(i)]);
         vline(1e3*response(i),'g','response')
         ylim(ylim_h1);
-        xlim([-200 1000]);
+        xlim(xlims);
         set(gca,'fontsize',14);
         
         linkaxes([h1,h2],'xy');
@@ -91,8 +91,6 @@ if average
     subplot(3,1,1);
     s = surf(1e3*tMorlet,fMorlet,poweroutAvg,'edgecolor','none');
     hold on
-    xlimsVec = [-200 1000];
-    ylimsVec = [0 300];
     % Extract X,Y and Z data from surface plot
     x=s.XData;
     y=s.YData;
@@ -143,7 +141,7 @@ if average
     ylims = [-(max(abs(1e6*nanmean(squeeze(processedSig(:,chanInt,:)),2))) + 10) (max(abs(1e6*nanmean(squeeze(processedSig(:,chanInt,:)),2))) + 10)];
     ylim(ylims);
     ylim_h1 = ylims;
-    xlim([-200 1000]);
+    xlim(xlims);
     vline(nanmean(stimTime),'r','stim')
     % vline(1e3*nanmean(response),'g','response')
     
@@ -155,7 +153,7 @@ if average
     ylabel('microvolts')
     title(['Raw Channel ' num2str(chanInt)]);
     ylim(ylim_h1);
-    xlim([-200 1000]);
+    xlim(xlims);
     set(gca,'fontsize',14);
     vline(nanmean(stimTime),'r','stim')
     %vline(1e3*nanmean(response),'g','response')

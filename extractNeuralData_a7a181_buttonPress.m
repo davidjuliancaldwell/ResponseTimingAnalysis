@@ -194,9 +194,10 @@ for s = sVec
         end
     %%
     % chanIntList = chanInt;
+    xlimsTemp = [-200 1000];
     for chanInt = chanIntList
         vizFunc.visualize_wavelet_channel_no_raw_not_normalized(poweroutNoStim,tMorlet,fMorlet,epochedDataNoStim,...
-            tEpoch,chanInt,individual,average)
+            tEpoch,chanInt,individual,average,xlimsTemp)
         
         figure
         plot(1e3*tMorlet,mean(squeeze(HGPowerWaveletNoStim(:,chanInt,:)),2))
@@ -275,12 +276,13 @@ for s = sVec
         title(['Stim Channel ' num2str(i)])
     end
     %%
+    xlimsTemp = [-200 1000];
     for chanInt = chanIntList
         vizFunc.visualize_wavelet_channel(poweroutNoStim,tMorlet,fMorlet,epochedDataNoStim,...
-            tEpoch,epochedDataNoStim,chanInt,individual,average)
+            tEpoch,epochedDataNoStim,chanInt,individual,average,xlimsTemp)
         
           vizFunc.visualize_wavelet_channel(poweroutStim,tMorlet,fMorlet,processedSigStim,...
-            tEpoch,epochedDataStim,chanInt,individual,average)
+            tEpoch,epochedDataStim,chanInt,individual,average,xlimsTemp)
     end
     %%
     for chanInt = chanIntList

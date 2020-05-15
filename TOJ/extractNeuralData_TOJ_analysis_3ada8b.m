@@ -183,7 +183,7 @@ vizFunc.small_multiples_time_series(processedSigReref,tEpoch,'type1',stimChans,'
 %%
 for chanInt = chanIntList
     vizFunc.visualize_wavelet_channel(normalizedData,tMorlet,fMorlet,processedSig,...
-        tEpoch,epochedECoG,chanInt,individual,average)
+        tEpoch,epochedECoG,chanInt,individual,average,xlims)
 end
 
 %%

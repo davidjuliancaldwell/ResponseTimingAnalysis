@@ -53,19 +53,19 @@ response = 0;
 preStim = 1000;
 postSTim = 2000;
 tMorletTactor = linspace(-preStim,postStim,size(normalizedDataTactor,2))/1e3;
-
+xlims = [-200 1000];
 for chanInt = chanIntList
     visualize_wavelet_channel_onlyProcessed(normalizedData,tMorlet,fMorlet,processedSig,...
-        tEpoch,chanInt,stimTime,response,individual,average)
+        tEpoch,chanInt,stimTime,response,individual,average,xlims)
     
     visualize_wavelet_channel_onlyProcessed(normalizedDataShift,tMorlet,fMorlet,sigShifted,...
-        tEpoch,chanInt,stimTime,response,individual,average)
+        tEpoch,chanInt,stimTime,response,individual,average,xlims)
     
         visualize_wavelet_channel_onlyProcessed(normalizedDataCond4,tMorletTactor,fMorlet,processedSigCond4,...
-        tEpoch,chanInt,stimTime,response,individual,average)
+        tEpoch,chanInt,stimTime,response,individual,average,xlims)
     
     visualize_wavelet_channel_onlyProcessed(normalizedDataTactor,tMorletTactor,fMorlet,processedSigTactor,...
-        tEpoch,chanInt,stimTime,response,individual,average)
+        tEpoch,chanInt,stimTime,response,individual,average,xlims)
 end
 
 return

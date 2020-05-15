@@ -1,10 +1,12 @@
-function [] = visualize_wavelet_channel_onlyProcessed(powerout,tMorlet,fMorlet,processedSig,tEpoch,chanInt,stimTime,response,individual,average)
+function [] = visualize_wavelet_channel_onlyProcessed(powerout,tMorlet,fMorlet,processedSig,tEpoch,chanInt,stimTime,response,individual,average,xlims)
 % set colormap using cbrewer
 %CT = cbrewer('div','RdBu',11);
 % flip it so red is increase, blue is down
 %CT = flipud(CT);
 load('america');
 CT = cm;
+ylimsVec = [5 300];
+xlimsVec = xlims;
 if individual
     
     for i = 1:size(powerout,4)
@@ -13,8 +15,6 @@ if individual
         totalFig.Position = [12.1806 3.4931 6.0833 7.8056];
         subplot(2,1,1);
         s = surf(1e3*tMorlet,fMorlet,powerout(:,:,chanInt,i),'edgecolor','none');
-        xlimsVec = [-200 1000];
-        ylimsVec = [0 300];
         %%Create vectors out of surface's XData and YData
         x=x(1,:);
         y=y(1,:);
@@ -49,7 +49,7 @@ if individual
         set_colormap_threshold(gcf, [-0.5 0.5], [-6 6], [1 1 1])
         plot3([stimTime(i),stimTime(i)],[0 300],[1000,1000],'r','linewidth',2)
         plot3([1e3*response(i),1e3*response(i)],[0 300],[1000,1000],'g','linewidth',2)
-                colorbar()
+        colorbar()
         
         h1 = subplot(2,1,2);
         plot(1e3*tEpoch,1e6*processedSig(:,chanInt,i))
@@ -61,7 +61,7 @@ if individual
         ylims = [-(max(abs(1e6*processedSig(:,chanInt,i))) + 10) (max(abs(1e6*processedSig(:,chanInt,i))) + 10)];
         ylim(ylims);
         ylim_h1 = ylims;
-        xlim([-200 1000]);
+        xlim(xlims);
         set(gca,'fontsize',14)
         
         
@@ -79,8 +79,6 @@ if average
     subplot(2,1,1);
     s = surf(1e3*tMorlet,fMorlet,poweroutAvg,'edgecolor','none');
     hold on
-    xlimsVec = [-200 1000];
-    ylimsVec = [0 300];
     % Extract X,Y and Z data from surface plot
     x=s.XData;
     y=s.YData;
@@ -131,7 +129,7 @@ if average
     ylims = [-(max(abs(1e6*nanmean(squeeze(processedSig(:,chanInt,:)),2))) + 10) (max(abs(1e6*nanmean(squeeze(processedSig(:,chanInt,:)),2))) + 10)];
     ylim(ylims);
     ylim_h1 = ylims;
-    xlim([-200 1000]);
+    xlim(xlims);
     vline(nanmean(stimTime),'r','stim')
     % vline(1e3*nanmean(response),'g','response')
     

@@ -139,9 +139,10 @@ vizFunc.small_multiples_time_series(processedSigTactor,tEpoch,'type1',stimChans,
 
 %%
 % chanIntList = chanInt;
+xlimsWave = [-200 1000];
 for chanInt = chanIntList
     visualize_wavelet_channel(normalizedDataTactor,tMorlet,fMorlet,processedSigTactor,...
-        tEpoch,epochedCortEcoTactor,chanInt,stimTime,response,individual,average)
+        tEpoch,epochedCortEcoTactor,chanInt,stimTime,response,individual,average,xlimsWave)
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
